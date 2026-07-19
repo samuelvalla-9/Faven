@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faven — Food Haven: Complete Product Document</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Georgia, serif;
+    background: #fafaf8;
+    color: #1a1a1a;
+    line-height: 1.8;
+    padding: 0;
+  }
+  .cover {
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
+    color: #fff;
+    padding: 80px 60px;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .cover-tag {
+    color: #FF6B35;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .cover h1 {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    margin-bottom: 8px;
+  }
+  .cover h1 span { color: #FF6B35; }
+  .cover-sub {
+    color: rgba(255,255,255,0.6);
+    font-size: 18px;
+    margin-top: 16px;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+  .cover-meta {
+    margin-top: 40px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .cover-pill {
+    background: rgba(255,107,53,0.15);
+    border: 1px solid rgba(255,107,53,0.3);
+    color: #FF6B35;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  .document {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 40px 100px;
+  }
+  .print-btn {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: #FF6B35;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255,107,53,0.4);
+    z-index: 1000;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .print-btn:hover { background: #e85d2a; }
+  .section {
+    margin-bottom: 56px;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #FF6B35;
+    margin-bottom: 12px;
+  }
+  h2 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #111;
+    margin-bottom: 20px;
+    line-height: 1.2;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+    margin: 28px 0 10px;
+  }
+  p {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 14px;
+    line-height: 1.8;
+  }
+  .divider {
+    width: 48px;
+    height: 3px;
+    background: #FF6B35;
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+  .card-orange {
+    background: #fff8f5;
+    border: 1px solid #ffd4c2;
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+  .card h3 { margin-top: 0; }
+  ul {
+    padding-left: 20px;
+    margin-bottom: 14px;
+  }
+  ul li {
+    font-size: 16px;
+    color: #333;
+    line-height: 1.8;
+    margin-bottom: 6px;
+  }
+  .signal {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .signal:last-child { border-bottom: none; }
+  .signal-num {
+    background: #FF6B35;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .signal-content h3 { margin: 0 0 6px; font-size: 16px; }
+  .signal-content p { margin: 0; font-size: 15px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 15px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: #f5f5f5;
+    color: #555;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #e8e8e8;
+  }
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .badge-orange { background: #fff0e8; color: #FF6B35; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .phase {
+    border-left: 3px solid #FF6B35;
+    padding: 4px 0 4px 20px;
+    margin-bottom: 28px;
+  }
+  .phase-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #FF6B35;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .phase h3 { margin: 0 0 10px; }
+  .code-block {
+    background: #1a1a2e;
+    color: #e8e8e8;
+    border-radius: 12px;
+    padding: 24px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 16px 0 24px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+  .code-block .comment { color: #7ec8e3; }
+  .code-block .keyword { color: #FF6B35; }
+  .highlight-box {
+    background: linear-gradient(135deg, #0f0f0f, #1a1a2e);
+    color: #fff;
+    border-radius: 16px;
+    padding: 32px;
+    margin: 32px 0;
+  }
+  .highlight-box p {
+    color: rgba(255,255,255,0.8);
+    font-size: 18px;
+    font-style: italic;
+    line-height: 1.7;
+    margin: 0;
+  }
+  .highlight-box strong { color: #FF6B35; }
+  .toc {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+  }
+  .toc h3 { margin: 0 0 16px; color: #111; }
+  .toc ol { padding-left: 20px; }
+  .toc ol li {
+    font-size: 15px;
+    color: #555;
+    padding: 4px 0;
+    line-height: 1.6;
+  }
+  .reward-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .reward-card {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .reward-card .icon { font-size: 28px; margin-bottom: 10px; }
+  .reward-card h4 { font-size: 15px; margin-bottom: 6px; color: #111; }
+  .reward-card p { font-size: 14px; color: #555; margin: 0; }
+  .closing {
+    background: linear-gradient(135deg, #0f0f0f, #1a1a2e);
+    color: #fff;
+    padding: 60px 40px;
+    text-align: center;
+  }
+  .closing h2 { color: #fff; font-size: 32px; margin-bottom: 20px; }
+  .closing p { color: rgba(255,255,255,0.7); font-size: 18px; max-width: 600px; margin: 0 auto; line-height: 1.8; }
+  .closing strong { color: #FF6B35; }
+  @media print {
+    .print-btn { display: none; }
+    body { background: #fff; }
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .closing { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .highlight-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  @media (max-width: 600px) {
+    .cover { padding: 48px 24px; }
+    .cover h1 { font-size: 36px; }
+    .document { padding: 40px 20px 80px; }
+    .reward-grid { grid-template-columns: 1fr; }
+    .print-btn { top: 12px; right: 12px; padding: 10px 14px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">⬇ Save as PDF</button>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-tag">Comprehensive Product & Strategy Document · 2026</div>
+  <h1>Faven<br><span>Food Haven.</span></h1>
+  <p class="cover-sub">Instagram for food — but every post is verified, every creator is rewarded from day one, and every review is proof that someone was actually there.</p>
+  <div class="cover-meta">
+    <span class="cover-pill">Creator Economy</span>
+    <span class="cover-pill">Verified Reviews</span>
+    <span class="cover-pill">India-First</span>
+    <span class="cover-pill">UPI-Powered</span>
+    <span class="cover-pill">Trust Infrastructure</span>
+    <span class="cover-pill">Food & Travel</span>
+  </div>
+</div>
+
+<!-- DOCUMENT BODY -->
+<div class="document">
+
+  <!-- TOC -->
+  <div class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li>What is Faven</li>
+      <li>The Core Insight</li>
+      <li>Every Problem Faven Solves</li>
+      <li>How Faven Works — The Verification System</li>
+      <li>The Reward System — Earning From Day One</li>
+      <li>Business Model — How Faven Makes Money</li>
+      <li>Creator Tiers — Free, Pro, Elite</li>
+      <li>Phased Rollout Strategy</li>
+      <li>Tech Stack</li>
+      <li>MVP — What Gets Built First</li>
+      <li>Marketing Strategy</li>
+      <li>Competitive Advantage</li>
+      <li>Coding Agent Instructions — Backend</li>
+      <li>Coding Agent Instructions — Frontend</li>
+      <li>Local Dev Sequence</li>
+    </ol>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section">
+    <div class="section-label">Section 01</div>
+    <h2>What is Faven?</h2>
+    <div class="divider"></div>
+    <p>Faven — Food Haven — is India's first verified food experience platform. Think Instagram, but built entirely around food — and where every post is tied to proof that the creator was actually there.</p>
+    <p>It is not a restaurant directory. Not an influencer platform. Not another review app. Faven is <strong>trust infrastructure for the food internet</strong> — a platform that rewards authentic, verified food experiences with credibility, reach, and real money.</p>
+    <p>Faven is proudly Indian. Built on UPI — the payment backbone of a billion people. Built for the collectivist dining culture where food is memory, identity, and community. Built for the 180 million urban Indians who already post food content every day and earn absolutely nothing for it.</p>
+    <p>Faven is not for professionals only. It is for the student who photographs their biriyani at a local joint. The family documenting their weekend lunch. The solo traveller who found a hidden gem. The micro creator with 500 followers who knows more about food than any influencer with 500,000. Every one of them belongs on Faven. Every one of them deserves to be paid for being real.</p>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <div class="section-label">Section 02</div>
+    <h2>The Core Insight</h2>
+    <div class="divider"></div>
+    <div class="highlight-box">
+      <p>"Every person who has ever taken a photo of their food and thought — <strong>someone should pay me for this</strong> — was right. Faven is the first platform that agrees with them."</p>
+    </div>
+    <p>Right now, 180 million people in India post food content on Instagram, WhatsApp, and Google Maps every single day. They are creating authentic word-of-mouth marketing for restaurants, food brands, and tourism destinations — and they are getting absolutely nothing in return.</p>
+    <p>Faven does not create a new behaviour. It puts a <strong>financial and credibility layer underneath one that already exists at massive scale.</strong></p>
+    <p>On every existing platform — Instagram, YouTube, Zomato — a creator who downloaded a stock photo gets identical reach to someone who flew to a city, found a hidden restaurant, and documented the real experience. Fakeness and authenticity are rewarded the same way. Faven is the first platform where being genuinely real gives you a measurable, algorithmic advantage.</p>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section">
+    <div class="section-label">Section 03</div>
+    <h2>Every Problem Faven Solves</h2>
+    <div class="divider"></div>
+
+    <h3>For Everyday Food Posters</h3>
+    <ul>
+      <li>Creates authentic food content every day and earns absolutely nothing despite that content having real economic value.</li>
+      <li>No way to build a portable credibility score they own — that follows them across the internet regardless of platform changes.</li>
+      <li>Monetisation gated behind follower thresholds they will never hit — 10,000 on Instagram, 1,000 subscribers and 4,000 watch hours on YouTube.</li>
+      <li>Being genuinely authentic is rewarded identically to someone who faked everything. No incentive to be real.</li>
+      <li>No platform treats an everyday food poster as a creator worthy of compensation.</li>
+    </ul>
+
+    <h3>For Serious Food Creators</h3>
+    <ul>
+      <li>No dedicated home for food travel content — scattered across general-purpose platforms fighting algorithms not built for them.</li>
+      <li>Reputation entirely controlled by algorithms that can vanish years of audience building overnight.</li>
+      <li>No verified credibility signal that proves their content is genuine — their word carries exactly equal weight to a fake influencer's.</li>
+      <li>Brand deals gated by follower count not content quality — a knowledgeable micro creator loses to a macro influencer with purchased followers every time.</li>
+      <li>Creators who accept sponsored restaurant content have no way to prove their review is genuine even when it is. Disclosure and credibility are mutually exclusive on every existing platform.</li>
+    </ul>
+
+    <h3>For Consumers</h3>
+    <ul>
+      <li>Restaurant discovery broken by systematically manipulated reviews from restaurants, competitors, and PR firms.</li>
+      <li>AI-generated food photos flooding every platform — impossible to know if what you're looking at reflects reality.</li>
+      <li>No platform to search for a feeling — aesthetic, cosy, romantic, hidden gem — and trust the results.</li>
+      <li>Word-of-mouth, historically the most trusted form of discovery, has been completely corrupted by fake review ecosystems.</li>
+    </ul>
+
+    <h3>For the Broader Internet</h3>
+    <ul>
+      <li>AI-generated content is becoming indistinguishable from real content. The internet faces a fundamental trust crisis. Faven anchors digital content back to physical reality — the only solution that actually works long term.</li>
+      <li>The creator economy's original promise has been captured by platforms that return almost none of the value to the creators who generate it. Faven returns that value to the people who earn it.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section">
+    <div class="section-label">Section 04</div>
+    <h2>How Faven Works — The Verification System</h2>
+    <div class="divider"></div>
+    <p>Every review on Faven is tied to proof of physical presence using a five-signal layered stack. No single signal is required to be perfect — verification is a <strong>tiered confidence score</strong>, not a binary pass or fail.</p>
+
+    <div class="card">
+      <div class="signal">
+        <div class="signal-num">1</div>
+        <div class="signal-content">
+          <h3>UPI Payment Verification <span class="badge badge-orange">Primary</span></h3>
+          <p>When a creator pays for their meal, a UPI payment confirmation with a Unique Transaction Reference (UTR) number is automatically generated on their phone. Faven validates the UTR format, cross-references the merchant name against the restaurant via Google Places API, and confirms the timestamp. The creator did nothing extra. The proof generated itself.</p>
+        </div>
+      </div>
+      <div class="signal">
+        <div class="signal-num">2</div>
+        <div class="signal-content">
+          <h3>Photo EXIF Metadata <span class="badge badge-orange">Primary</span></h3>
+          <p>Every photo taken on a smartphone automatically embeds GPS coordinates and a timestamp into the image file. Faven silently reads this when a photo is uploaded and cross-references the location against the restaurant's known coordinates via Google Places API. The creator took a photo of their food — which they were going to do anyway. Verification happened inside the photo before they thought about posting.</p>
+        </div>
+      </div>
+      <div class="signal">
+        <div class="signal-num">3</div>
+        <div class="signal-content">
+          <h3>Receipt OCR <span class="badge badge-blue">Fallback</span></h3>
+          <p>For cash payments, creators upload a receipt photo. Faven reads the restaurant name and date using OCR via Google Cloud Vision or Amazon Textract. Covers the significant segment of India that still pays cash at local restaurants.</p>
+        </div>
+      </div>
+      <div class="signal">
+        <div class="signal-num">4</div>
+        <div class="signal-content">
+          <h3>AI Photo Authenticity Detection <span class="badge badge-green">Baseline</span></h3>
+          <p>Every uploaded photo is scanned. Three outcomes: fully AI-generated images are rejected outright; legitimately AI-enhanced real photos are allowed with a transparent disclosure label; significantly manipulated photos go to the internal trust and safety team. Content Authenticity Initiative (Adobe CAI) integration adopted as the standard becomes mainstream across camera apps.</p>
+        </div>
+      </div>
+      <div class="signal">
+        <div class="signal-num">5</div>
+        <div class="signal-content">
+          <h3>Community Corroboration <span class="badge badge-green">Cultural</span></h3>
+          <p>When multiple users post reviews of the same restaurant within the same time window from the same GPS cluster, their individual verification scores mutually reinforce each other. Built for India's collectivist dining culture — groups of friends, families, colleagues dining together. Also a viral growth mechanic: one person at the table tells their friends to post so everyone's score improves, onboarding four new users at a single lunch at zero cost.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Tiered Confidence Scoring</h3>
+    <table>
+      <thead>
+        <tr><th>Signals Present</th><th>Badge Assigned</th><th>Reach Impact</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>4–5 signals</td><td>✅ Fully Verified</td><td>Maximum algorithmic boost</td></tr>
+        <tr><td>2–3 signals</td><td>🟡 Partially Verified</td><td>Moderate boost</td></tr>
+        <tr><td>AI scan only</td><td>⬜ Reviewed</td><td>Standard reach</td></tr>
+      </tbody>
+    </table>
+    <p>Nobody gets zero. Every honest creator gets something. Scores improve naturally over time as creators build a consistent posting history — the platform learns to trust them even without perfect signals on every post.</p>
+
+    <h3>Sponsored Visit Handling</h3>
+    <p>Sponsored visits are handled transparently — a Sponsored Visit toggle is available on every post. EXIF metadata still fires since the creator was physically present. An optional restaurant confirmation flow lets the establishment verify the creator was their guest. An optional booking screenshot lets creators attach their invitation message as supplementary evidence. A sponsored verified review on Faven is more transparent than any sponsored post on Instagram — because on Faven, consumers always know which is which.</p>
+
+    <h3>Moderation — Two Layers Only</h3>
+    <p>Automated checks handle 90–95% of all cases through technical verification requiring no human judgement. A small paid internal trust and safety team — funded within the seed round — handles edge cases and appeals. Trained, consistent, accountable, and completely independent of the creator community. No community moderation. No conflict of interest. No bias.</p>
+
+    <h3>Search</h3>
+    <p>Keyword search across all verified reviews at launch — standard full text search using MySQL or Elasticsearch. Two days of development work, immediately useful from the first review posted. Semantic search (understanding what "aesthetic" means, not just matching the word) launches in Phase 3. Visual AI analysis of photos for aesthetic cues — cosy, vibrant, romantic — launches in Phase 4, using the growing verified photo library as a training dataset.</p>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section">
+    <div class="section-label">Section 05</div>
+    <h2>The Reward System — Earning From Day One</h2>
+    <div class="divider"></div>
+    <p>A credibility score alone is not enough to make someone download a new app and post their first review. Faven delivers four layers of immediate, tangible value from the moment a user joins.</p>
+    <div class="reward-grid">
+      <div class="reward-card">
+        <div class="icon">💸</div>
+        <h4>₹25 First Post Cashback</h4>
+        <p>Every user's first verified post triggers ₹25 UPI cashback — immediately, into their phone. Real money. Shareable screenshot. Word-of-mouth moment that costs ₹25 per organically acquired user.</p>
+      </div>
+      <div class="reward-card">
+        <div class="icon">🔥</div>
+        <h4>Weekly Streak Coins</h4>
+        <p>Faven Coins earned for consecutive weekly posting accumulate toward Pro access, cashback thresholds, and brand vouchers. Mechanic users already understand from Swiggy and Amazon Pay.</p>
+      </div>
+      <div class="reward-card">
+        <div class="icon">🏆</div>
+        <h4>Monthly City Leaderboard</h4>
+        <p>Top 10 verified reviewers in each city win real prizes each month. Small prize pool. Massive organic engagement. Creators share their rank. Followers download to compete.</p>
+      </div>
+      <div class="reward-card">
+        <div class="icon">🎟️</div>
+        <h4>Restaurant Voucher Milestones</h4>
+        <p>At 5, 10, and 20 verified posts, users unlock vouchers from partner restaurants — free dessert, 20% off, complimentary drink. Self-perpetuating loop: the reward funds the next verified post.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section">
+    <div class="section-label">Section 06</div>
+    <h2>Business Model — How Faven Makes Money</h2>
+    <div class="divider"></div>
+    <p>Faven sells to <strong>creators</strong> — not restaurants. This is the Meta/YouTube model: the free tier builds the network, the paid tier monetises power users. Proven at billion-dollar scale. Applied to the food creator economy for the first time.</p>
+    <p>Restaurants are not the customer. They are the subject matter. This is critical — it means Faven's revenue never depends on convincing restaurants to care about authenticity, which they largely don't. Revenue comes from creators who want to grow, which is universal and proven.</p>
+
+    <h3>Primary Revenue — Creator Subscriptions</h3>
+    <p>See Creator Tiers section below. Recurring, predictable, platform-controlled revenue that rises every month as more creators subscribe and renew.</p>
+
+    <h3>Secondary Revenue — Brand Campaign Marketplace (Phase 3)</h3>
+    <p>F&B brands pay Faven to run verified food trail campaigns. Pro and Elite creators opt in. Faven takes a platform cut. Creators earn. Brands get real content from verified visitors — something no other platform can offer.</p>
+
+    <h3>Tertiary Revenue — B2B Data Licensing (Phase 4)</h3>
+    <p>Aggregated, anonymised verified visit data licensed to food delivery platforms, tourism boards, and real estate developers. High margin. Zero incremental cost per deal.</p>
+
+    <h3>Supplementary Revenue — City Guide Listings</h3>
+    <p>Restaurants optionally pay a small fee to appear in Faven's curated verified city guides. Optional, not required — they come to Faven because the audience is worth it, not because we sold them a philosophy.</p>
+  </div>
+
+  <!-- SECTION 7 -->
+  <div class="section">
+    <div class="section-label">Section 07</div>
+    <h2>Creator Tiers — Free, Pro, Elite</h2>
+    <div class="divider"></div>
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>Free</th><th>Pro — ₹499/mo</th><th>Elite — ₹1,499/mo</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Post verified reviews</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Verified credibility badge</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Basic analytics</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Faven Coins &amp; streak rewards</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Boosted reach for verified content</td><td>—</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Full analytics dashboard</td><td>—</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Priority placement in search &amp; city guides</td><td>—</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Brand collab pitch tools</td><td>—</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Sponsored food trail campaign access</td><td>—</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Featured in curated city guides</td><td>—</td><td>—</td><td>✓</td></tr>
+        <tr><td>Direct brand deal matchmaking</td><td>—</td><td>—</td><td>✓</td></tr>
+        <tr><td>White-label verified review exports</td><td>—</td><td>—</td><td>✓</td></tr>
+        <tr><td>Dedicated creator support</td><td>—</td><td>—</td><td>✓</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Survival number:</strong> 500 paying Pro creators at ₹499/month = ₹2.5 lakh MRR. That is the floor below which Faven does not operate. Every month a creator renews, runway extends automatically. Subscription revenue means the financial floor rises every single month — even in a bad month.</p>
+  </div>
+
+  <!-- SECTION 8 -->
+  <div class="section">
+    <div class="section-label">Section 08</div>
+    <h2>Phased Rollout Strategy</h2>
+    <div class="divider"></div>
+    <p>Verification is Faven's core differentiator — but enforcing it on day one creates friction that kills early adoption. Faven rolls out gradually, turning verification from a gate into a reward.</p>
+
+    <div class="phase">
+      <div class="phase-label">Phase 1 · Month 0–3</div>
+      <h3>Open Platform</h3>
+      <p>No verification enforced. Anyone posts freely. Verification is an optional prompt with a clear one-screen explanation of its benefits. Seed 50 founding Elite creators across Bangalore with free access for 3 months — no conditions attached. ₹25 cashback, streak coins, and city leaderboard active from day one to build habit before enforcement begins.</p>
+      <p><strong>Success metric:</strong> 2,000 creators onboarded. 500 verified reviews posted. Leaderboard has genuine competition.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Phase 2 · Month 3–6</div>
+      <h3>Voluntary Verification + Pro Launch</h3>
+      <p>Verified content receives algorithmically higher reach — a visible, measurable gap that creates FOMO. Pro and Elite subscriptions launch. Restaurant voucher milestone rewards activate. Restaurant confirmation flow launches. Community corroboration scoring activates.</p>
+      <p><strong>Success metric:</strong> 10,000 creators. 500 paying Pro subscribers. ₹2.5 lakh MRR. First brand campaign pilot running.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Phase 3 · Month 6–12</div>
+      <h3>Verified-First Algorithm</h3>
+      <p>Verified content gets significant algorithmic priority in discovery, search, and city guides. Brand campaign marketplace launches. Semantic search launches. Expansion to Mumbai and Delhi.</p>
+      <p><strong>Success metric:</strong> 25,000 creators across 3 cities. 2,000 Pro + 200 Elite subscribers. ₹12 lakh MRR.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Phase 4 · Month 12–18</div>
+      <h3>Full Enforcement + Scale</h3>
+      <p>Verification required for all new submissions. B2B data licensing launches. Visual AI aesthetic photo analysis development begins — using the verified photo library as training data. Content Authenticity Initiative integration deepens. Southeast Asia expansion planning begins.</p>
+      <p><strong>Success metric:</strong> 50,000 creators across India. 5,000 Pro + 500 Elite subscribers. ₹35 lakh+ MRR. Series A ready.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 9 -->
+  <div class="section">
+    <div class="section-label">Section 09</div>
+    <h2>Tech Stack</h2>
+    <div class="divider"></div>
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>Technology</th><th>Reason</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Mobile App</td><td>React Native CLI (not Expo)</td><td>Single codebase for Android + iOS. Full control, no Expo dependency layer. Camera, GPS, UPI deep-linking all handled natively.</td></tr>
+        <tr><td>Backend</td><td>Node.js + Express</td><td>Lightweight, fast API development. Large ecosystem. Alternatively Spring Boot (Java) given founder's background.</td></tr>
+        <tr><td>Primary Database</td><td>MySQL</td><td>Structured relational data. Built-in full text search for keyword search feature. Familiar from CityCare project.</td></tr>
+        <tr><td>Cache Layer</td><td>Redis</td><td>Leaderboard calculations, Faven Coins balance, streak tracking — extremely fast reads for frequently accessed data.</td></tr>
+        <tr><td>File Storage</td><td>AWS S3 / Local filesystem (dev)</td><td>Photo uploads, receipts, UPI screenshots. Scalable and cheap.</td></tr>
+        <tr><td>Authentication</td><td>JWT with phone OTP</td><td>Phone number is primary identity in Indian market. Firebase dropped due to dependency issues.</td></tr>
+        <tr><td>Restaurant Data</td><td>Google Places API</td><td>Restaurant coordinates for EXIF and UPI cross-referencing.</td></tr>
+        <tr><td>OCR</td><td>Google Cloud Vision / Amazon Textract</td><td>Receipt and document reading for fallback verification.</td></tr>
+        <tr><td>AI Detection</td><td>Hive Moderation API</td><td>AI-generated image detection with confidence scoring.</td></tr>
+        <tr><td>EXIF Reading</td><td>Sharp / ExifJS (Node.js)</td><td>GPS coordinate and timestamp extraction from uploaded photos.</td></tr>
+        <tr><td>Payouts</td><td>Razorpay Payout API / Cashfree</td><td>₹25 first post cashback disbursement direct to UPI.</td></tr>
+        <tr><td>Push Notifications</td><td>Firebase Cloud Messaging</td><td>User alerts, reward notifications, streak reminders.</td></tr>
+        <tr><td>Hosting (MVP)</td><td>Railway</td><td>Fast deployment, simple config, free tier generous for early stage.</td></tr>
+        <tr><td>Hosting (Scale)</td><td>AWS EC2</td><td>Production-grade, scalable when needed.</td></tr>
+        <tr><td>CDN</td><td>Cloudflare</td><td>Static assets and image delivery.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 10 -->
+  <div class="section">
+    <div class="section-label">Section 10</div>
+    <h2>MVP — What Gets Built First</h2>
+    <div class="divider"></div>
+    <p>The MVP proves one thing: creators want the verified badge, consumers trust it, and the search behaviour Faven is betting on actually exists. <strong>Estimated build time: 4–6 weeks for two developers.</strong></p>
+
+    <h3>What IS in the MVP</h3>
+    <ul>
+      <li>Phone number OTP registration and login (JWT-based, no Firebase)</li>
+      <li>Public creator profile with verified credibility score and posted reviews</li>
+      <li>Restaurant search via Google Places API</li>
+      <li>Review submission with photo upload</li>
+      <li>Silent EXIF GPS extraction and restaurant coordinate cross-reference</li>
+      <li>UPI payment screenshot upload with UTR format validation</li>
+      <li>Receipt photo upload with OCR</li>
+      <li>Sponsored visit disclosure toggle</li>
+      <li>AI generation detection via Hive Moderation API</li>
+      <li>Tiered confidence score calculation and badge assignment</li>
+      <li>Verification prompt on upload — clear one-screen explanation of benefits</li>
+      <li>₹25 UPI cashback on first verified post via Razorpay</li>
+      <li>Faven Coins on subsequent verified posts</li>
+      <li>Weekly streak tracking with visual indicator</li>
+      <li>City leaderboard — top 10 verified reviewers this month</li>
+      <li>Keyword search across all verified review text</li>
+      <li>Internal moderation dashboard for trust and safety team</li>
+    </ul>
+
+    <h3>What is NOT in the MVP</h3>
+    <ul>
+      <li>Pro and Elite subscription tiers (Phase 2)</li>
+      <li>Brand campaign marketplace (Phase 3)</li>
+      <li>Semantic search (Phase 3)</li>
+      <li>Visual AI aesthetic photo analysis (Phase 4)</li>
+      <li>Restaurant confirmation flow (Phase 2)</li>
+      <li>Community corroboration scoring (Phase 2)</li>
+      <li>B2B data licensing (Phase 4)</li>
+      <li>Restaurant voucher milestone rewards (Phase 2)</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 11 -->
+  <div class="section">
+    <div class="section-label">Section 11</div>
+    <h2>Marketing Strategy</h2>
+    <div class="divider"></div>
+    <p><strong>Core principle:</strong> Faven does not need paid advertising to grow. Creators are the distribution channel. Every piece of verified content posted on Faven is simultaneously a piece of marketing for Faven on every other platform where that creator shares it.</p>
+
+    <h3>Pre-Launch — Seed Creator Campaign</h3>
+    <p>The single most important marketing activity Faven will ever do. Before public launch, personally identify and onboard 50 micro food creators across Bangalore. Selection criteria: genuine food enthusiasm, consistent posting history, reputation for honest content. Give every one of them free Elite access for 3 months — no conditions, no obligations. Their genuine enthusiasm is more credible than any paid post. These 50 creators collectively reach hundreds of thousands of food enthusiasts. That is the launch audience at zero cost.</p>
+
+    <h3>The ₹25 Screenshot — Word of Mouth Engine</h3>
+    <p>Every time a new user receives their ₹25 cashback they screenshot it and share it on WhatsApp and Instagram stories. That screenshot is Faven's most powerful marketing asset — real proof that Faven pays people as an immediate lived experience, not a future promise. Cost per organically acquired user: ₹25.</p>
+
+    <h3>FOMO Mechanics</h3>
+    <p>City leaderboards create visible public competition. The verified badge creates social FOMO among unverified creators who see verified ones getting measurably better reach. The streak system builds return-visit habit. The product mechanics create desire without any ad spend.</p>
+
+    <h3>Group Dining Viral Loop</h3>
+    <p>One person at a restaurant table tells their friends to post too — because group posting from the same GPS cluster raises everyone's verification score. Four new users onboarded at a single lunch. Zero marketing spend. Uniquely possible in India's collectivist dining culture.</p>
+
+    <h3>Creator Affiliate Programme (Phase 2)</h3>
+    <p>Creators who refer other creators earn bonus Faven Coins for every referred creator who posts their first verified review. Simple, trackable, incentivised. Turns every Faven creator into a recruitment channel.</p>
+
+    <h3>Two Messages, One Platform</h3>
+    <p><strong>To creators:</strong> "You've been posting food photos for free for years. Faven pays you for it — from your very first verified post. No follower threshold. No algorithm lottery. Just real food, real visits, real money."</p>
+    <p><strong>To consumers:</strong> "Tired of fake restaurant reviews? Every review on Faven is from someone who was actually there. We can prove it. Search for what you're actually looking for — and trust what you find."</p>
+  </div>
+
+  <!-- SECTION 12 -->
+  <div class="section">
+    <div class="section-label">Section 12</div>
+    <h2>Competitive Advantage</h2>
+    <div class="divider"></div>
+    <table>
+      <thead>
+        <tr><th>Platform</th><th>Earn from Day 1</th><th>Verified Visits</th><th>Food Focus</th><th>Creator Tools</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Instagram</td><td>✗</td><td>✗</td><td>✗</td><td>Partial</td></tr>
+        <tr><td>YouTube</td><td>✗</td><td>✗</td><td>✗</td><td>✓</td></tr>
+        <tr><td>Zomato / Yelp</td><td>✗</td><td>✗</td><td>✓</td><td>✗</td></tr>
+        <tr><td>Google Maps</td><td>✗</td><td>Partial</td><td>✗</td><td>✗</td></tr>
+        <tr><td><strong>Faven</strong></td><td><strong>✓</strong></td><td><strong>✓✓</strong></td><td><strong>✓</strong></td><td><strong>✓ Tiered</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Why Faven is Hard to Copy</h3>
+    <ul>
+      <li><strong>Verification pipeline is the moat.</strong> Journey check + AI detection + EXIF reading + UTR validation takes time, trust, and data to build. First-mover advantage compounds here.</li>
+      <li><strong>Creator credibility lock-in.</strong> A creator's verified score is built on real visits over time. They won't abandon it to start over on a competitor. Trust is sticky in a way that features aren't.</li>
+      <li><strong>UPI as geographic moat.</strong> The UTR verification mechanism is uniquely powerful in India. A Western competitor cannot replicate this without deeply understanding the UPI ecosystem.</li>
+      <li><strong>Network effects.</strong> More verified creators → better content → more users → more brand deals → more creator earnings → more creators. The flywheel accelerates with scale.</li>
+      <li><strong>Data moat.</strong> The verified review database is the asset — not just the product. Every verified review posted makes every other feature more valuable. Search gets smarter. Brand matching gets better. Aesthetic AI gets more accurate. Everything compounds indefinitely.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 13 -->
+  <div class="section">
+    <div class="section-label">Section 13</div>
+    <h2>Coding Agent Instructions — Backend</h2>
+    <div class="divider"></div>
+    <p>Give these instructions to a coding agent (Claude Code or similar) to build the local backend. Copy and paste as-is.</p>
+    <div class="code-block"><span class="comment">// ============================================================
+// FAVEN BACKEND — LOCAL DUMMY MVP
+// Instructions for coding agent
+// ============================================================</span>
+
+Build a local Node.js + Express backend for an app called Faven.
+
+<span class="keyword">REQUIREMENTS:</span>
+
+- Use Express for the REST API.
+- Use MySQL running locally as the database (assume it is already
+  installed and running on localhost:3306).
+- Create a database called faven_db with these tables:
+
+  users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    phone_number VARCHAR(15) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    city VARCHAR(100),
+    credibility_score INT DEFAULT 0,
+    coins INT DEFAULT 0,
+    first_post_rewarded BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+
+  restaurants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    address TEXT,
+    city VARCHAR(100),
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8)
+  )
+
+  reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    restaurant_id INT REFERENCES restaurants(id),
+    review_text TEXT,
+    photo_path VARCHAR(500),
+    upi_screenshot_path VARCHAR(500),
+    receipt_path VARCHAR(500),
+    verification_tier ENUM(
+      'fully_verified',
+      'partially_verified',
+      'reviewed'
+    ) DEFAULT 'reviewed',
+    is_sponsored BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+
+- Use Multer for handling file uploads.
+  Store all uploaded files locally in an /uploads folder.
+  No cloud storage for this dummy version.
+
+- Use bcrypt for password hashing and JWT for authentication.
+  Store JWT_SECRET in .env file.
+
+<span class="keyword">ENDPOINTS TO BUILD:</span>
+
+  POST   /auth/register
+    Body: { phone_number, name, city }
+    Returns JWT token.
+
+  POST   /auth/login
+    Body: { phone_number }
+    Returns JWT token.
+    (Simple dummy login — no OTP for local version.)
+
+  GET    /restaurants/search?q=name&city=city
+    Returns matching restaurants from seed data.
+
+  POST   /reviews
+    Protected route (JWT required).
+    Accepts multipart/form-data:
+      - photo (file, required)
+      - upi_screenshot (file, optional)
+      - receipt (file, optional)
+      - restaurant_id (string)
+      - review_text (string)
+      - is_sponsored (boolean)
+    Verification logic (dummy stubs — comment all TODOs clearly):
+      - If upi_screenshot uploaded → TODO: real UTR validation here
+      - If photo has EXIF data → TODO: real EXIF GPS extraction here
+      - If receipt uploaded → TODO: real OCR extraction here
+      - TODO: AI generation detection via Hive Moderation API here
+    Assign verification_tier based on files provided:
+      - photo + upi_screenshot → fully_verified
+      - photo + receipt → partially_verified
+      - photo only → reviewed
+    After saving review:
+      - Add 10 credibility_score to user
+      - Add 5 coins to user
+      - If user's first_post_rewarded is FALSE:
+          Set first_post_rewarded = TRUE
+          TODO: trigger ₹25 Razorpay payout here (stub only)
+          Return a firstPostReward: true flag in response
+
+  GET    /reviews/:restaurantId
+    Returns all reviews for a restaurant with user info and
+    verification tier. Most recently posted first.
+
+  GET    /users/:id/profile
+    Returns user profile: name, city, credibility_score, coins,
+    and all their reviews with restaurant names.
+
+  GET    /leaderboard/:city
+    Returns top 10 users by credibility_score in that city.
+
+<span class="keyword">SEED SCRIPT (run once on setup):</span>
+
+  Insert 5 restaurants in Bangalore with real coordinates.
+  Insert 2 dummy users for testing.
+  Script should be runnable with: npm run seed
+
+<span class="keyword">ENVIRONMENT:</span>
+
+  Create a .env file with:
+    PORT=3000
+    DB_HOST=localhost
+    DB_PORT=3306
+    DB_USER=root
+    DB_PASSWORD=yourpassword
+    DB_NAME=faven_db
+    JWT_SECRET=faven_local_secret_key
+
+<span class="keyword">SCRIPTS in package.json:</span>
+
+  npm run dev   → starts server with nodemon
+  npm run seed  → runs seed script
+  npm start     → starts server with node
+
+<span class="keyword">NOTES:</span>
+
+  - Do NOT integrate any real external APIs yet.
+    Stub all of them with placeholder functions and
+    clear TODO comments indicating where integration goes.
+  - Add console logging for every request.
+  - The Android emulator reaches this server at
+    http://10.0.2.2:3000 (not localhost).
+  - Do not use Firebase anywhere.</div>
+  </div>
+
+  <!-- SECTION 14 -->
+  <div class="section">
+    <div class="section-label">Section 14</div>
+    <h2>Coding Agent Instructions — Frontend</h2>
+    <div class="divider"></div>
+    <p>Give these instructions to a coding agent separately from the backend instructions. Copy and paste as-is.</p>
+    <div class="code-block"><span class="comment">// ============================================================
+// FAVEN FRONTEND — LOCAL DUMMY MVP
+// Instructions for coding agent
+// ============================================================</span>
+
+Build a React Native CLI Android app called FavenApp that connects
+to a local backend running at http://10.0.2.2:3000.
+
+<span class="keyword">SETUP:</span>
+
+  Initialize with: npx react-native init FavenApp
+  Do NOT use Expo. Do NOT install any Expo packages.
+  Do NOT install or configure Firebase anywhere.
+
+<span class="keyword">DEPENDENCIES TO INSTALL:</span>
+
+  @react-navigation/native
+  @react-navigation/bottom-tabs
+  @react-navigation/native-stack
+  react-native-screens
+  react-native-safe-area-context
+  @react-native-async-storage/async-storage
+  react-native-image-picker
+  axios
+
+<span class="keyword">API LAYER:</span>
+
+  Create src/api.js with:
+    const BASE_URL = 'http://10.0.2.2:3000';
+    Export axios instance with BASE_URL as baseURL.
+    Export helper to set Authorization header from
+    stored JWT token.
+  All network calls go through this file only.
+  Change BASE_URL here to switch environments later.
+
+<span class="keyword">SCREENS TO BUILD:</span>
+
+<span class="comment">// --- SCREEN 1: Auth Screen ---</span>
+  Phone number input + name input for registration.
+  A toggle to switch between Register and Login.
+  On submit: call POST /auth/register or /auth/login.
+  Store returned JWT in AsyncStorage under key 'faven_token'.
+  Store returned user id under key 'faven_user_id'.
+  Navigate to Home on success.
+
+<span class="comment">// --- SCREEN 2: Home Screen ---</span>
+  Search bar at top. On type, call GET /restaurants/search?q=input.
+  Display restaurant results in a FlatList.
+  Each item shows restaurant name, address, city.
+  Tap a restaurant → navigate to Restaurant Detail screen.
+  Show empty state text if no results.
+
+<span class="comment">// --- SCREEN 3: Restaurant Detail Screen ---</span>
+  Show restaurant name and address at top.
+  Button: "Write a Verified Review" → navigates to
+  Review Submission screen, passing restaurantId.
+  Below the button: FlatList of reviews from
+  GET /reviews/:restaurantId.
+  Each review card shows:
+    - Reviewer name
+    - Review text
+    - Verification tier badge:
+        fully_verified → green badge "✓ Fully Verified"
+        partially_verified → yellow badge "~ Partially Verified"
+        reviewed → grey badge "Reviewed"
+    - Sponsored label if is_sponsored is true
+    - Posted date
+
+<span class="comment">// --- SCREEN 4: Review Submission Screen ---</span>
+  Receives restaurantId as navigation param.
+  Fields:
+    - TextInput for review text (multiline)
+    - Image picker button for food photo (required)
+    - Image picker button for UPI screenshot (optional,
+      label: "Attach UPI Payment Screenshot")
+    - Image picker button for receipt (optional,
+      label: "Attach Receipt (for cash payments)")
+    - Switch toggle labelled "This was a sponsored visit"
+    - Submit button
+  Before showing the form, show a one-screen prompt:
+    "Want this post to be verified?
+    Verified posts get more reach and build your
+    credibility score faster. Attach your UPI screenshot
+    or receipt to get started."
+    Two buttons: "Yes, verify it" and "Skip for now"
+    If skipped, hide the UPI and receipt pickers but
+    still allow photo and text submission.
+  On submit: POST to /reviews as multipart/form-data
+  with Authorization header from stored JWT.
+  On success response with firstPostReward: true,
+  show a modal: "🎉 ₹25 reward sent to your UPI!
+  Thanks for your first verified post on Faven."
+  On any success: navigate back to Restaurant Detail.
+
+<span class="comment">// --- SCREEN 5: Profile Screen ---</span>
+  On mount: call GET /users/:id/profile using stored
+  faven_user_id from AsyncStorage.
+  Display:
+    - User name and city
+    - Credibility Score (large, prominent number)
+    - Faven Coins balance
+    - List of user's reviews with restaurant name
+      and verification tier badge
+
+<span class="comment">// --- SCREEN 6: Leaderboard Screen ---</span>
+  Hardcode city as "Bangalore" for local dummy version.
+  On mount: call GET /leaderboard/Bangalore.
+  Display ranked list (1–10) of top users showing:
+    - Rank number
+    - User name
+    - Credibility score
+  Current user highlighted if they appear in the list.
+
+<span class="keyword">NAVIGATION:</span>
+
+  Bottom tab navigator with three tabs:
+    🏠 Home → Home Screen
+    🏆 Leaderboard → Leaderboard Screen
+    👤 Profile → Profile Screen
+  Stack navigator inside Home tab handles:
+    Home → Restaurant Detail → Review Submission
+
+  Auth Screen is shown before tabs if no JWT in
+  AsyncStorage. After login, navigate to tab navigator.
+
+<span class="keyword">STYLING:</span>
+
+  Use React Native StyleSheet throughout.
+  No third-party UI libraries needed.
+  Colour scheme:
+    Background: #111111
+    Primary accent: #FF6B35 (orange)
+    Text primary: #FFFFFF
+    Text secondary: #888888
+    Card background: #1A1A1A
+    Border: #2A2A2A
+    Green (verified): #4CAF50
+    Yellow (partial): #FF9800
+    Grey (reviewed): #666666
+  Keep styling functional — this is a dummy build,
+  not a production UI.
+
+<span class="keyword">NOTES:</span>
+
+  - Run the Express backend first before starting the app.
+  - Start the app with: npx react-native run-android
+  - Requires Android Studio with an AVD running.
+  - Do not use Firebase anywhere.
+  - Do not use Expo anywhere.</div>
+  </div>
+
+  <!-- SECTION 15 -->
+  <div class="section">
+    <div class="section-label">Section 15</div>
+    <h2>Local Dev Sequence</h2>
+    <div class="divider"></div>
+    <p>Follow this exact order to get the local dummy version running end-to-end.</p>
+    <div class="card">
+      <h3>Step 1 — Database</h3>
+      <p>Install MySQL locally if not already installed. Create database <code>faven_db</code>. Update the <code>.env</code> file in the backend folder with your MySQL credentials.</p>
+    </div>
+    <div class="card">
+      <h3>Step 2 — Backend</h3>
+      <p>Navigate to the backend folder. Run <code>npm install</code>. Run <code>npm run seed</code> to insert dummy restaurants and users. Run <code>npm run dev</code>. Confirm server is listening on port 3000 and seed data is visible in the logs.</p>
+    </div>
+    <div class="card">
+      <h3>Step 3 — Android Emulator</h3>
+      <p>Open Android Studio. Start an Android Virtual Device (AVD) — a Pixel device running Android 13 or 14 works well. Wait for the emulator to fully boot.</p>
+    </div>
+    <div class="card">
+      <h3>Step 4 — Frontend</h3>
+      <p>Navigate to the FavenApp folder. Run <code>npm install</code>. Run <code>npx react-native run-android</code>. The app builds and installs on the running emulator automatically.</p>
+    </div>
+    <div class="card-orange">
+      <h3>Step 5 — Test the Full Flow</h3>
+      <p>Register a new user on the login screen. Search for one of the 5 seeded restaurants. Tap through to Restaurant Detail. Submit a review with a photo and a UPI screenshot. Observe the verification badge assigned. Check the Profile screen for updated credibility score. Check the Leaderboard. The first post reward modal should appear on first verified submission.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- CLOSING -->
+<div class="closing">
+  <h2>The Faven Promise</h2>
+  <p>"Every other platform asks creators to go viral before they can earn. <strong>Faven asks them to go real.</strong> And real, it turns out, is worth a lot more — to consumers, to brands, and to the 180 million people in India who have been creating authentic food content for free for years and never been paid a single rupee for it."</p>
+  <p style="margin-top: 32px; font-size: 14px; opacity: 0.4;">Faven — Food Haven · Built for Everyone · India-First · 2026</p>
+</div>
+
+<script>
+  // Nothing needed — print button uses window.print()
+</script>
+
+</body>
+</html>

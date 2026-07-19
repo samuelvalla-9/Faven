@@ -1,0 +1,79 @@
+const router = require('express').Router();
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
+const pool = require('../db/pool');
+const auth = require('../middleware/auth');
+const { computeTier } = require('../services/verification');
+
+const uploadDir = path.join(__dirname, '..', '..', 'uploads');
+fs.mkdirSync(uploadDir, { recursive: true });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadDir,
+    filename: (_req, file, cb) => cb(null, `${Date.now()}-${Math.round(Math.random() * 1e6)}${path.extname(file.originalname)}`),
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+// GET /reviews/feed — latest reviews across restaurants
+router.get('/feed', async (_req, res, next) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT r.*, u.username, u.name AS user_name, u.credibility_score,
+              rest.name AS restaurant_name, rest.city
+       FROM reviews r
+       JOIN users u ON u.id = r.user_id
+       JOIN restaurants rest ON rest.id = r.restaurant_id
+       ORDER BY r.created_at DESC LIMIT 50`
+    );
+    res.json({ reviews: rows });
+  } catch (e) { next(e); }
+});
+
+// POST /reviews (multipart) fields: restaurant_id, rating, body, is_sponsored; file: photo
+router.post('/', auth, upload.single('photo'), async (req, res, next) => {
+  try {
+    const { restaurant_id, rating, body, is_sponsored } = req.body;
+    if (!restaurant_id || !rating) return res.status(400).json({ error: 'restaurant_id and rating required' });
+
+    const photoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // Sprint 2 will run real verification; stubbed signals for now
+    const signals = { exif_verified: 0, upi_verified: 0, receipt_verified: 0, ai_authentic: 1, community_verified: 0 };
+    const tier = computeTier(signals);
+
+    const [r] = await pool.query(
+      `INSERT INTO reviews (user_id, restaurant_id, rating, body, photo_url,
+        exif_verified, upi_verified, receipt_verified, ai_authentic, community_verified,
+        verification_tier, is_sponsored, visited_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?, NOW())`,
+      [req.user.id, restaurant_id, rating, body || '', photoUrl,
+       signals.exif_verified, signals.upi_verified, signals.receipt_verified,
+       signals.ai_authentic, signals.community_verified, tier, is_sponsored ? 1 : 0]
+    );
+
+    // First-post ₹25 cashback (mock ledger) + 10 coins per post
+    const [[user]] = await pool.query(`SELECT * FROM users WHERE id=?`, [req.user.id]);
+    const rewards = [];
+    if (!user.first_post_rewarded) {
+      await pool.query(
+        `INSERT INTO reward_ledger (user_id, type, amount_inr, note) VALUES (?, 'cashback_first_post', 25, 'First verified post cashback (dev mock)')`,
+        [req.user.id]
+      );
+      await pool.query(`UPDATE users SET first_post_rewarded=1 WHERE id=?`, [req.user.id]);
+      rewards.push({ type: 'cashback_first_post', amount_inr: 25 });
+    }
+    await pool.query(
+      `INSERT INTO reward_ledger (user_id, type, coins, note) VALUES (?, 'coins_post', 10, 'Post reward')`,
+      [req.user.id]
+    );
+    await pool.query(`UPDATE users SET coins = coins + 10, last_post_date = CURDATE() WHERE id=?`, [req.user.id]);
+    rewards.push({ type: 'coins_post', coins: 10 });
+
+    const [[review]] = await pool.query(`SELECT * FROM reviews WHERE id=?`, [r.insertId]);
+    res.status(201).json({ review, rewards });
+  } catch (e) { next(e); }
+});
+
+module.exports = router;

@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 19 July 2026
+> **Last updated:** 20 July 2026
 
 ---
 
@@ -87,7 +87,8 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 - [x] **UPI/UTR + receipt OCR interfaces** — `utr` form field (12-digit, dev format-check mock; real provider env-gated), `receipt` file field (OCR stub); UTR input added to Post screen
 - [x] **Sponsored disclosure UI** — visible "Sponsored" label on review cards (shipped in Sprint 1's `TierBadge`)
 - [ ] **Switch to EAS development build** for device testing (Expo Go insufficient once native modules grow) — requires device/EAS account session
-- [x] **API integration tests** for verification logic — Jest (`api/tests/verification.test.js`, 24 tests: tiers, haversine, EXIF evaluation, UPI/receipt/AI stubs); `npm test`
+- [x] **API integration tests** for verification logic — Jest, 31 tests across 2 suites: `api/tests/verification.test.js` (unit: tiers, haversine, EXIF evaluation, UPI/receipt/AI stubs) + `api/tests/exif.integration.test.js` (real geotagged JPEGs through exifr); `npm test`
+- [x] **Code coverage reporting** — `npm run test:coverage` → `api/coverage/` (lcov.info, cobertura-coverage.xml, HTML report); `verification.js` at ~94% stmts / 93% branches; `coverage/` gitignored
 
 **Notes:** browsers strip EXIF GPS, so `exif_verified` needs a real-device photo upload to trigger — logic is unit-tested against synthetic EXIF data. Community corroboration stays 0 (post-MVP).
 
@@ -162,10 +163,16 @@ powershell -ExecutionPolicy Bypass -File app/start-web.ps1   # → http://localh
 # Health check
 curl http://localhost:4000/health
 
+# Tests & coverage
+cd api; npm test                     # 31 tests (unit + EXIF integration)
+cd api; npm run test:coverage        # lcov + cobertura + HTML → api/coverage/
+node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG for manual EXIF e2e
+
 # Login flow (dev): any 10-digit phone → OTP 123456
 ```
 
 **Key files:**
 - API entry: `api/src/server.js` · routes: `api/src/routes/` · verification: `api/src/services/verification.js`
+- Tests: `api/tests/` (Jest; helper `tests/helpers/geotaggedJpeg.js` generates EXIF fixtures) · coverage config in `api/package.json`
 - Schema/seed: `api/src/db/schema.sql`, `seed.js` · env: `api/.env` (never commit)
 - App entry: `app/App.tsx` · theme: `app/src/theme.ts` · API client: `app/src/api.ts`

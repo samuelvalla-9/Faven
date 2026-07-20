@@ -83,6 +83,19 @@ For a typical change session:
 git add -A; git commit -m "<type>(<scope>): <summary>"; git push
 ```
 
+## Documentation upkeep (mandatory)
+
+Markdown docs are part of every change — keep them in sync in the SAME session as the code change:
+
+1. **`IMPLEMENTATION_PLAN.md`** — after completing (or partially completing) any sprint item:
+   - tick the checkbox `[ ]` → `[x]` and annotate what was actually built (file paths, key decisions),
+   - update sprint status markers (`⬅ NEXT` / `⬅ IN PROGRESS` / `✅ COMPLETE`),
+   - update the **Last updated** date in the header,
+   - record new dev commands/gotchas in **Dev quick reference** and new key files in **Key files**.
+2. **`GIT_PROTOCOL.md` / `.github/copilot-instructions.md`** — update when the workflow itself changes (new protocols, tooling rules).
+3. Doc updates are committed with `docs(infra): ...` (or bundled with the feature commit when trivial), then pushed like any other change.
+4. Never document secrets, tokens, or credentials in markdown files.
+
 ## Failure handling
 
 | Symptom | Action |
@@ -96,7 +109,8 @@ git add -A; git commit -m "<type>(<scope>): <summary>"; git push
 
 1. ✅ Commit and push automatically after every completed change — no need to ask.
 2. ✅ Conventional Commit messages, generated from the actual diff.
-3. ❌ No force pushes to `main`.
-4. ❌ No secrets in commits, messages, or remote URLs.
-5. ❌ No global git config changes.
-6. ❌ No history rewrites of pushed commits without explicit user approval.
+3. ✅ Keep markdown docs (`IMPLEMENTATION_PLAN.md`, protocol files) updated in the same session as the change.
+4. ❌ No force pushes to `main`.
+5. ❌ No secrets in commits, messages, or remote URLs.
+6. ❌ No global git config changes.
+7. ❌ No history rewrites of pushed commits without explicit user approval.

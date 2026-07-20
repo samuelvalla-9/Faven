@@ -12,3 +12,11 @@ Follow the full protocol in [GIT_PROTOCOL.md](../GIT_PROTOCOL.md). Key points:
 - Commit identity is per-repo (`samuelvalla-9`) — never change global git config, never commit as any other account.
 - Never commit secrets (`.env`, tokens, keys); verify `git check-ignore api/.env` passes before staging.
 - Never force-push to `main`.
+
+## Documentation upkeep (mandatory)
+
+Keep markdown docs in sync in the same session as any code change:
+
+- **`IMPLEMENTATION_PLAN.md`** — tick completed sprint items, update sprint status markers and the **Last updated** date, note key files/commands added.
+- **`GIT_PROTOCOL.md`** / this file — update when workflow or protocols change.
+- Commit doc updates as `docs(infra): ...` (or bundle with the feature commit when trivial).

@@ -36,6 +36,7 @@ router.post('/', auth, upload.single('photo'), async (req, res, next) => {
   try {
     const { restaurant_id, rating, body, is_sponsored } = req.body;
     if (!restaurant_id || !rating) return res.status(400).json({ error: 'restaurant_id and rating required' });
+    const sponsored = is_sponsored === true || is_sponsored === 1 || is_sponsored === '1' || is_sponsored === 'true';
 
     const photoUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
@@ -50,13 +51,15 @@ router.post('/', auth, upload.single('photo'), async (req, res, next) => {
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?, NOW())`,
       [req.user.id, restaurant_id, rating, body || '', photoUrl,
        signals.exif_verified, signals.upi_verified, signals.receipt_verified,
-       signals.ai_authentic, signals.community_verified, tier, is_sponsored ? 1 : 0]
+       signals.ai_authentic, signals.community_verified, tier, sponsored ? 1 : 0]
     );
 
-    // First-post ₹25 cashback (mock ledger) + 10 coins per post
+    // First-post ₹25 cashback (mock ledger) — product rule: only for a Fully
+    // Verified post (4–5 signals → tier 'full'). Signals are stubbed until
+    // Sprint 2, so this won't trigger in dev; that's intentional.
     const [[user]] = await pool.query(`SELECT * FROM users WHERE id=?`, [req.user.id]);
     const rewards = [];
-    if (!user.first_post_rewarded) {
+    if (!user.first_post_rewarded && tier === 'full') {
       await pool.query(
         `INSERT INTO reward_ledger (user_id, type, amount_inr, note) VALUES (?, 'cashback_first_post', 25, 'First verified post cashback (dev mock)')`,
         [req.user.id]

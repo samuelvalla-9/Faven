@@ -83,6 +83,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 - [ ] **EXIF extraction server-side** (e.g. `exifr`): parse GPS + timestamp from uploaded photo
 - [ ] **Location cross-check** — haversine distance photo GPS ↔ restaurant lat/lng (threshold ~200m); timestamp recency window
 - [ ] **Tier computation live** — replace stubbed signals in `POST /reviews`; recompute badge
+- [ ] **First-post ₹25 cashback goes live** — already gated on `tier === 'full'` (≥4 signals) in `POST /reviews`; will start paying out once real signals land (currently unreachable with stubbed signals)
 - [ ] **UPI/UTR + receipt OCR interfaces** — keep stubbed behind `services/verification.js`, define request fields (utr string, receipt photo)
 - [ ] **Sponsored disclosure UI** — visible label on sponsored review cards
 - [ ] **Switch to EAS development build** for device testing (Expo Go insufficient once native modules grow)

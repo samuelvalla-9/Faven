@@ -338,7 +338,7 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
       form.append('restaurant_id', String(restaurant.id));
       form.append('rating', String(rating));
       form.append('body', body);
-      form.append('is_sponsored', sponsored ? '1' : '0');
+      if (sponsored) form.append('is_sponsored', '1');
       if (photo) {
         if (Platform.OS === 'web') {
           const blob = await (await fetch(photo.uri)).blob();

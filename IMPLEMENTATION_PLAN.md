@@ -76,7 +76,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 
 ---
 
-## Sprint 2 — Verification Slice (1–2 weeks) ⬅ IN PROGRESS
+## Sprint 2 — Verification Slice (1–2 weeks) ✅ COMPLETE (EAS dev build deferred — needs device/EAS account)
 
 **Goal:** Posts earn real verification tiers. Demo: a photo with GPS metadata gets `exif_verified=1` and a Partially Verified badge.
 
@@ -96,11 +96,11 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 
 ---
 
-## Sprint 3 — Rewards & Retention (1 week)
+## Sprint 3 — Rewards & Retention (1 week) ⬅ IN PROGRESS
 
 **Goal:** Gamification loop feels real. Demo: streaks tick daily, leaderboard reflects verified posts, push notification on reward.
 
-- [ ] **Streak logic** — server-side daily streak update on post (`streak_days`, `last_post_date`); streak coins (weekly bonus)
+- [x] **Streak logic** — server-side daily streak update on post (`streak_days`, `last_post_date`); streak coins (weekly bonus) — `api/src/services/rewards.js` (`computeStreak`: consecutive-day increment, same-day no-op, gap reset; +50 coins every 7-day multiple, env `STREAK_WEEKLY_BONUS_COINS`); wired into `POST /reviews` (ledger `coins_streak` entries; response includes `streak`); 12 unit tests in `api/tests/rewards.test.js`
 - [ ] **Rewards ledger screen** — cashback + coins history from `reward_ledger`
 - [ ] **Leaderboard polish** — monthly reset framing, rank movement, current-user highlight
 - [ ] **Voucher milestones (data model only)** — 5/10/20 posts thresholds recorded; redemption deferred
@@ -164,7 +164,7 @@ powershell -ExecutionPolicy Bypass -File app/start-web.ps1   # → http://localh
 curl http://localhost:4000/health
 
 # Tests & coverage
-cd api; npm test                     # 31 tests (unit + EXIF integration)
+cd api; npm test                     # 43 tests (verification unit + EXIF integration + streak/rewards)
 cd api; npm run test:coverage        # lcov + cobertura + HTML → api/coverage/
 node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG for manual EXIF e2e
 
@@ -172,7 +172,7 @@ node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG 
 ```
 
 **Key files:**
-- API entry: `api/src/server.js` · routes: `api/src/routes/` · verification: `api/src/services/verification.js`
+- API entry: `api/src/server.js` · routes: `api/src/routes/` · verification: `api/src/services/verification.js` · rewards/streaks: `api/src/services/rewards.js`
 - Tests: `api/tests/` (Jest; helper `tests/helpers/geotaggedJpeg.js` generates EXIF fixtures) · coverage config in `api/package.json`
 - Schema/seed: `api/src/db/schema.sql`, `seed.js` · env: `api/.env` (never commit)
 - App entry: `app/App.tsx` · theme: `app/src/theme.ts` · API client: `app/src/api.ts`

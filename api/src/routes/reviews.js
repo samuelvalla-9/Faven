@@ -5,6 +5,7 @@ const multer = require('multer');
 const pool = require('../db/pool');
 const auth = require('../middleware/auth');
 const { computeTier, verifyExif, verifyUpi, verifyReceipt, verifyAiAuthenticity } = require('../services/verification');
+const { computeStreak } = require('../services/rewards');
 
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
 fs.mkdirSync(uploadDir, { recursive: true });
@@ -94,11 +95,27 @@ router.post('/', auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'r
       `INSERT INTO reward_ledger (user_id, type, coins, note) VALUES (?, 'coins_post', 10, 'Post reward (FAV Coins)')`,
       [req.user.id]
     );
-    await pool.query(`UPDATE users SET coins = coins + 10, last_post_date = CURDATE() WHERE id=?`, [req.user.id]);
     rewards.push({ type: 'coins_post', coins: 10 });
 
+    // Streak logic (Sprint 3): daily streak increments on consecutive-day posts;
+    // weekly bonus coins every time the streak hits a multiple of 7.
+    const streak = computeStreak(user.last_post_date, user.streak_days);
+    let bonusCoins = 0;
+    if (streak.weeklyBonus > 0) {
+      bonusCoins = streak.weeklyBonus;
+      await pool.query(
+        `INSERT INTO reward_ledger (user_id, type, coins, note) VALUES (?, 'coins_streak', ?, ?)`,
+        [req.user.id, bonusCoins, `${streak.streakDays}-day streak bonus (FAV Coins)`]
+      );
+      rewards.push({ type: 'coins_streak', coins: bonusCoins, streak_days: streak.streakDays });
+    }
+    await pool.query(
+      `UPDATE users SET coins = coins + ?, streak_days = ?, last_post_date = CURDATE() WHERE id=?`,
+      [10 + bonusCoins, streak.streakDays, req.user.id]
+    );
+
     const [[review]] = await pool.query(`SELECT * FROM reviews WHERE id=?`, [r.insertId]);
-    res.status(201).json({ review, rewards, verification });
+    res.status(201).json({ review, rewards, verification, streak: { days: streak.streakDays, extended: streak.changed } });
   } catch (e) { next(e); }
 });
 

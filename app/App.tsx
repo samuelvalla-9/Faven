@@ -22,7 +22,7 @@ import {
   View,
 } from 'react-native';
 import { api, BASE_URL, setToken } from './src/api';
-import { colors, radius, spacing, tierColors, tierLabels } from './src/theme';
+import { colors, radius, spacing, tierColors, tierLabels, tierTextColors, typeScale } from './src/theme';
 
 const TOKEN_KEY = 'faven.token';
 
@@ -37,7 +37,7 @@ function photoUri(url?: string | null): string | null {
 
 function Stars({ rating }: { rating: number }) {
   return (
-    <Text style={{ color: colors.accent2, fontSize: 14 }}>
+    <Text style={{ color: colors.accent2Ink, fontSize: 14 }}>
       {'★'.repeat(Math.round(rating))}
       <Text style={{ color: colors.inkSoft }}>{'★'.repeat(5 - Math.round(rating))}</Text>
     </Text>
@@ -48,7 +48,7 @@ function TierBadge({ tier, sponsored }: { tier: string; sponsored?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', gap: spacing.xs }}>
       <View style={[s.badge, { backgroundColor: tierColors[tier] || colors.inkSoft }]}>
-        <Text style={s.badgeText}>{tierLabels[tier] || tier}</Text>
+        <Text style={[s.badgeText, { color: tierTextColors[tier] || colors.paper2 }]}>{tierLabels[tier] || tier}</Text>
       </View>
       {sponsored ? (
         <View style={[s.badge, { backgroundColor: colors.accentInk }]}>
@@ -521,7 +521,7 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
 // ---------- Leaderboard ----------
 
 function RankMovement({ movement, prevRank }: { movement: number | null; prevRank: number | null }) {
-  if (prevRank == null) return <Text style={{ color: colors.accent2, fontWeight: '700' }}>NEW</Text>;
+  if (prevRank == null) return <Text style={{ color: colors.accent2Ink, fontWeight: '700' }}>NEW</Text>;
   if (!movement) return <Text style={{ color: colors.inkSoft }}>—</Text>;
   const up = movement > 0;
   return (
@@ -607,7 +607,7 @@ function LeaderboardScreen({ user }: { user: any }) {
             </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={s.cardMeta}>Credibility {item.credibility_score ?? 0}</Text>
-              <Text style={{ color: colors.accent2, fontWeight: '700' }}>
+              <Text style={{ color: colors.accent2Ink, fontWeight: '700' }}>
                 {item.posts_this_month ?? 0} posts · {item.fully_verified ?? 0} verified
               </Text>
             </View>
@@ -727,7 +727,7 @@ function RewardsHistory() {
 function StatBox({ label, value }: { label: string; value: string | number }) {
   return (
     <View style={[s.card, { flex: 1, alignItems: 'center' }]}>
-      <Text style={{ color: colors.accent, fontSize: 20, fontWeight: '800' }}>{value}</Text>
+      <Text style={{ color: colors.accentInk, fontSize: 20, fontWeight: '800' }}>{value}</Text>
       <Text style={s.cardMeta}>{label}</Text>
     </View>
   );
@@ -904,7 +904,7 @@ const s = StyleSheet.create({
   headerLogo: { fontSize: 22, fontWeight: '800', color: colors.accentInk },
   headerCoins: { fontSize: 16, color: colors.ink, fontWeight: '600' },
   authWrap: { flex: 1, justifyContent: 'center', padding: spacing.xl, gap: spacing.md },
-  logo: { fontSize: 44, fontWeight: '800', color: colors.accentInk, textAlign: 'center' },
+  logo: { ...typeScale.display, color: colors.accentInk, textAlign: 'center' },
   tagline: { color: colors.inkSoft, textAlign: 'center', marginBottom: spacing.lg },
   input: {
     backgroundColor: colors.paper2,
@@ -916,13 +916,14 @@ const s = StyleSheet.create({
     color: colors.ink,
   },
   btn: {
-    backgroundColor: colors.accent,
+    // accentInk (6.0:1 with white text) instead of accent (3.76:1) — WCAG AA
+    backgroundColor: colors.accentInk,
     borderRadius: radius.pill,
     paddingVertical: spacing.md,
     alignItems: 'center',
   },
   btnGhost: { backgroundColor: 'transparent' },
-  btnText: { color: colors.paper2, fontWeight: '700', fontSize: 16 },
+  btnText: { color: '#FFFFFF', fontWeight: '700', fontSize: typeScale.body.fontSize },
   error: { color: colors.accentInk, textAlign: 'center' },
   skelLine: {
     height: 14,
@@ -930,7 +931,7 @@ const s = StyleSheet.create({
     backgroundColor: colors.accentTint,
     marginVertical: 2,
   },
-  h1: { fontSize: 24, fontWeight: '800', color: colors.ink },
+  h1: { ...typeScale.h1, color: colors.ink },
   card: {
     backgroundColor: colors.paper2,
     borderRadius: radius.md,
@@ -942,8 +943,8 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: colors.ink },
-  cardMeta: { fontSize: 13, color: colors.inkSoft },
+  cardTitle: { fontSize: typeScale.body.fontSize, fontWeight: '700', color: colors.ink },
+  cardMeta: { ...typeScale.meta, color: colors.inkSoft },
   cardBody: { fontSize: 14, color: colors.ink, lineHeight: 20 },
   cardPhoto: { width: '100%', height: 200, borderRadius: radius.sm, marginVertical: spacing.xs },
   badge: {
@@ -952,7 +953,7 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
   },
-  badgeText: { color: colors.paper2, fontSize: 11, fontWeight: '700' },
+  badgeText: { color: colors.paper2, fontSize: typeScale.badge.fontSize, fontWeight: typeScale.badge.fontWeight },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: colors.paper2,

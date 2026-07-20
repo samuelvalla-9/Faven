@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 20 July 2026 (Sprint 4: keyword search + Hive AI authenticity + moderation dashboard + app UX pass shipped)
+> **Last updated:** 20 July 2026 (Sprint 4 ✓ complete: search, AI authenticity, moderation dashboard, UX/a11y/UI polish)
 
 ---
 
@@ -109,7 +109,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 
 ---
 
-## Sprint 4 — Trust & Polish (1 week) ⬅ IN PROGRESS
+## Sprint 4 — Trust & Polish (1 week) ✅ COMPLETE
 
 **Goal:** MVP feature-complete per product doc. Demo: moderation dashboard + AI check + polished ember UI.
 
@@ -117,12 +117,12 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 - [x] **Moderation dashboard (web)** — Express-served ember-styled page at `GET /admin` (`api/src/admin/dashboard.html`: paste admin JWT, tabs for flagged/visible/removed/all/users, flag·remove·restore with notes); API: `GET /admin/reviews?status=`, `POST /admin/reviews/:id/status`, `GET /admin/users` behind `auth` + new `admin` middleware (`users.is_admin`); reviews get `status`/`moderation_note` columns; removed reviews hidden from feed/detail/search; migration `api/scripts/migrate-sprint4-moderation.js`
 - [x] **Keyword search across reviews** — `GET /search?q=&limit=` (`api/src/routes/search.js`): matches restaurants (name/cuisine/address) + review bodies in one response; 400 on missing `q`, limit clamped 1–50; mounted in `server.js`
 - [x] **UX pass** — in `app/App.tsx`: card loading skeletons (`SkeletonCards`, static — reduced-motion friendly), themed `ErrorState` with retry on Feed/Search/detail/Leaderboard/Rewards (errors no longer swallowed), "Searching…" feedback, pull-to-refresh added to Leaderboard (Feed already had it)
-- [ ] **Accessibility** — reduced-motion parity with landing page, contrast check on ember palette — *started: tab bar has `accessibilityRole`/`state`, skeletons are static (no animation)*
-- [ ] **Ember UI polish** — typography scale, consistent card/badge styling
+- [x] **Accessibility** — WCAG AA contrast audit + fixes: buttons use `accentInk` bg (white 6.0:1 vs accent's 3.76:1), new `accent2Ink` token (#8A5A24, 5.5:1 on paper) for amber text, tier badges get per-tier text colors (`tierTextColors`: ink-on-amber 5.9:1, white-on-greenDeep 8.1:1); tab bar `accessibilityRole/state`; skeletons static (reduced-motion safe)
+- [x] **Ember UI polish** — `typeScale` typography tokens in `app/src/theme.ts` (display/h1/h2/body/meta/badge) applied across headings, cards, badges, buttons; consistent badge styling via `tierColors` + `tierTextColors`
 
 ---
 
-## Sprint 5 — Release & Feedback (1 week)
+## Sprint 5 — Release & Feedback (1 week) ⬅ NEXT
 
 **Goal:** Real users on the app; feedback loop running.
 

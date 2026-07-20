@@ -16,7 +16,7 @@ function resolveBaseUrl(): string {
   return 'http://localhost:4000';
 }
 
-const BASE_URL = resolveBaseUrl();
+export const BASE_URL = resolveBaseUrl();
 
 let authToken: string | null = null;
 export function setToken(token: string | null) {
@@ -49,6 +49,8 @@ export const api = {
       body: JSON.stringify({ phone, code }),
     }),
   me: () => request<{ user: any }>('/auth/me'),
+  updateMe: (fields: { name?: string; username?: string; city?: string }) =>
+    request<{ user: any }>('/auth/me', { method: 'PATCH', body: JSON.stringify(fields) }),
   feed: () => request<{ reviews: any[] }>('/reviews/feed'),
   restaurants: (q = '') => request<{ restaurants: any[] }>(`/restaurants?q=${encodeURIComponent(q)}`),
   restaurant: (id: number) => request<{ restaurant: any; reviews: any[] }>(`/restaurants/${id}`),

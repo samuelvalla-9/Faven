@@ -64,12 +64,12 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 
 **Goal:** A signed-in user can find a restaurant, post a review with a photo, and see it in the feed. Demo: full post loop on web.
 
-- [ ] **Restaurant search screen** — search bar querying `GET /restaurants?q=`, result list, tap → detail screen with reviews (`GET /restaurants/:id`)
-- [ ] **Review submission screen** — star rating, text body, photo via `expo-image-picker` (EXIF enabled), sponsored toggle → `POST /reviews` (multipart)
-- [ ] **Rewards feedback** — show ₹25 first-post cashback + coins toast/modal from the submit response
-- [ ] **Profile screen** — view/edit name, username, city (`PATCH /auth/me`); show coins, credibility, streak
-- [ ] **Token persistence** — `@react-native-async-storage/async-storage`; auto-login on relaunch (`GET /auth/me`)
-- [ ] **Feed photos** — render `photo_url` images in feed cards
+- [x] **Restaurant search screen** — search bar querying `GET /restaurants?q=`, result list, tap → detail screen with reviews (`GET /restaurants/:id`)
+- [x] **Review submission screen** — star rating, text body, photo via `expo-image-picker` (EXIF enabled), sponsored toggle → `POST /reviews` (multipart)
+- [x] **Rewards feedback** — show ₹25 first-post cashback + coins toast/modal from the submit response
+- [x] **Profile screen** — view/edit name, username, city (`PATCH /auth/me`); show coins, credibility, streak
+- [x] **Token persistence** — `@react-native-async-storage/async-storage`; auto-login on relaunch (`GET /auth/me`)
+- [x] **Feed photos** — render `photo_url` images in feed cards
 - [ ] (Stretch) Google Places integration behind the search endpoint, cached into `restaurants` table with session tokens
 
 **Known caveat:** browsers strip EXIF GPS — real EXIF testing needs a device (Sprint 2).

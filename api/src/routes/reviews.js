@@ -68,7 +68,7 @@ router.post('/', auth, upload.single('photo'), async (req, res, next) => {
       rewards.push({ type: 'cashback_first_post', amount_inr: 25 });
     }
     await pool.query(
-      `INSERT INTO reward_ledger (user_id, type, coins, note) VALUES (?, 'coins_post', 10, 'Post reward')`,
+      `INSERT INTO reward_ledger (user_id, type, coins, note) VALUES (?, 'coins_post', 10, 'Post reward (FAV Coins)')`,
       [req.user.id]
     );
     await pool.query(`UPDATE users SET coins = coins + 10, last_post_date = CURDATE() WHERE id=?`, [req.user.id]);

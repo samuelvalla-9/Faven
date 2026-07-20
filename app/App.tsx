@@ -445,7 +445,7 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
               <Text key={i} style={{ color: colors.ink, fontSize: 16 }}>
                 {r.type === 'cashback_first_post'
                   ? `₹${r.amount_inr} first-post cashback earned!`
-                  : `+${r.coins} coins`}
+                  : `+${r.coins} FAV Coins`}
               </Text>
             ))}
             <Button
@@ -536,7 +536,7 @@ function ProfileScreen({
     <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.md }}>
       <Text style={s.h1}>Profile</Text>
       <View style={{ flexDirection: 'row', gap: spacing.md }}>
-        <StatBox label="Coins" value={user?.coins ?? 0} />
+        <StatBox label="FAV Coins" value={user?.coins ?? 0} />
         <StatBox label="Credibility" value={user?.credibility_score ?? 0} />
         <StatBox label="Streak" value={`${user?.streak_days ?? 0}d`} />
       </View>
@@ -646,7 +646,7 @@ export default function App() {
       <StatusBar style="dark" />
       <View style={s.header}>
         <Text style={s.headerLogo}>Faven</Text>
-        <Text style={s.headerCoins}>🪙 {user.coins ?? 0}</Text>
+        <Text style={s.headerCoins}>🪙 {user.coins ?? 0} FAV</Text>
       </View>
       <View style={{ flex: 1 }}>
         {tab === 'feed' && <FeedScreen key={feedKey} />}

@@ -17,7 +17,7 @@
 | Database | **MySQL** | Local for dev; Railway/AWS later. |
 | Auth | Phone OTP → JWT (30-day) | Dev OTP: `123456` (`DEV_OTP_CODE` in `api/.env`). SMS provider later. |
 | Storage | Local `api/uploads/` for dev | S3 in production. |
-| Payments/rewards | Mock ledger (`reward_ledger` table) | Real Razorpay/Cashfree deferred to Phase 2. |
+| Payments/rewards | Mock ledger (`reward_ledger` table) | Real Razorpay/Cashfree deferred to Phase 2. In-app currency is branded **FAV Coins** everywhere in UI/copy (DB column stays `coins`). |
 | Design system | **Ember & Parchment palette** | Tokens in `app/src/theme.ts`, mirrors landing page `[data-theme="ember"]`. |
 
 ### Ember palette reference

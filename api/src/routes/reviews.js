@@ -5,7 +5,7 @@ const multer = require('multer');
 const pool = require('../db/pool');
 const auth = require('../middleware/auth');
 const { computeTier, verifyExif, verifyUpi, verifyReceipt, verifyAiAuthenticity } = require('../services/verification');
-const { computeStreak } = require('../services/rewards');
+const { computeStreak, milestoneForPostCount } = require('../services/rewards');
 
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
 fs.mkdirSync(uploadDir, { recursive: true });
@@ -113,6 +113,26 @@ router.post('/', auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'r
       `UPDATE users SET coins = coins + ?, streak_days = ?, last_post_date = CURDATE() WHERE id=?`,
       [10 + bonusCoins, streak.streakDays, req.user.id]
     );
+
+    // Voucher milestones (Sprint 3 — data model only): record when lifetime
+    // post count crosses 5/10/20. Redemption deferred to post-MVP.
+    const [[{ total_posts }]] = await pool.query(
+      `SELECT COUNT(*) AS total_posts FROM reviews WHERE user_id=?`, [req.user.id]
+    );
+    const milestone = milestoneForPostCount(total_posts);
+    if (milestone) {
+      const [ins] = await pool.query(
+        `INSERT IGNORE INTO voucher_milestones (user_id, threshold, voucher_value_inr) VALUES (?,?,?)`,
+        [req.user.id, milestone.threshold, milestone.valueInr]
+      );
+      if (ins.affectedRows > 0) {
+        await pool.query(
+          `INSERT INTO reward_ledger (user_id, type, amount_inr, note) VALUES (?, 'voucher', ?, ?)`,
+          [req.user.id, milestone.valueInr, `₹${milestone.valueInr} voucher earned — ${milestone.threshold} posts milestone (redemption coming soon)`]
+        );
+        rewards.push({ type: 'voucher', amount_inr: milestone.valueInr, threshold: milestone.threshold });
+      }
+    }
 
     const [[review]] = await pool.query(`SELECT * FROM reviews WHERE id=?`, [r.insertId]);
     res.status(201).json({ review, rewards, verification, streak: { days: streak.streakDays, extended: streak.changed } });

@@ -48,4 +48,23 @@ function computeStreak(lastPostDate, currentStreak, today = new Date()) {
   return { streakDays: next, changed: true, weeklyBonus };
 }
 
-module.exports = { computeStreak, STREAK_WEEKLY_BONUS_COINS };
+// Voucher milestones (Sprint 3 — data model only; redemption deferred).
+// Thresholds are lifetime post counts; values are the voucher ₹ amounts.
+const VOUCHER_MILESTONES = [
+  { threshold: 5, valueInr: 100 },
+  { threshold: 10, valueInr: 250 },
+  { threshold: 20, valueInr: 600 },
+];
+
+/**
+ * Which milestone (if any) does this post cross?
+ * Fires only on the exact post that reaches the threshold.
+ * @param {number} totalPosts lifetime post count INCLUDING the post just made
+ * @returns {{ threshold: number, valueInr: number } | null}
+ */
+function milestoneForPostCount(totalPosts) {
+  const n = Number(totalPosts) || 0;
+  return VOUCHER_MILESTONES.find((m) => m.threshold === n) || null;
+}
+
+module.exports = { computeStreak, milestoneForPostCount, VOUCHER_MILESTONES, STREAK_WEEKLY_BONUS_COINS };

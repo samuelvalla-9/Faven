@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 20 July 2026 (Sprint 3: leaderboard polish shipped)
+> **Last updated:** 20 July 2026 (Sprint 3: leaderboard polish + voucher milestones shipped)
 
 ---
 
@@ -103,7 +103,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 - [x] **Streak logic** — server-side daily streak update on post (`streak_days`, `last_post_date`); streak coins (weekly bonus) — `api/src/services/rewards.js` (`computeStreak`: consecutive-day increment, same-day no-op, gap reset; +50 coins every 7-day multiple, env `STREAK_WEEKLY_BONUS_COINS`); wired into `POST /reviews` (ledger `coins_streak` entries; response includes `streak`); 12 unit tests in `api/tests/rewards.test.js`
 - [x] **Rewards ledger screen** — cashback + coins history from `reward_ledger`: `GET /rewards` (auth; last 100 entries + ₹/coins totals, `api/src/routes/rewards.js`) · app: "Rewards history" toggle on Profile screen (`RewardsHistory` in `app/App.tsx`, totals StatBoxes + entry cards)
 - [x] **Leaderboard polish** — monthly reset framing, rank movement, current-user highlight — API: `GET /leaderboard` now returns `month`, `resets_in_days`, and per-row `rank`/`prev_rank`/`movement` (vs last month's standings, same ordering); app: season banner with reset countdown, ▲/▼/NEW movement indicators (`RankMovement`), "(you)" row with accent-tint highlight, verified-post count per row
-- [ ] **Voucher milestones (data model only)** — 5/10/20 posts thresholds recorded; redemption deferred
+- [x] **Voucher milestones (data model only)** — 5/10/20 lifetime-post thresholds (₹100/₹250/₹600) — new `voucher_milestones` table (unique per user+threshold, status `earned/redeemed/expired`; redemption deferred); `milestoneForPostCount` in `api/src/services/rewards.js`; `POST /reviews` records milestone + `voucher` ledger entry on the exact crossing post; 5 new unit tests (48 total)
 - [ ] **Push notifications** — `expo-notifications` + FCM: reward earned, streak reminder
 - [ ] **Credibility score v1** — simple formula (verified posts weighted by tier)
 
@@ -164,7 +164,7 @@ powershell -ExecutionPolicy Bypass -File app/start-web.ps1   # → http://localh
 curl http://localhost:4000/health
 
 # Tests & coverage
-cd api; npm test                     # 43 tests (verification unit + EXIF integration + streak/rewards)
+cd api; npm test                     # 48 tests (verification unit + EXIF integration + streak/rewards/milestones)
 cd api; npm run test:coverage        # lcov + cobertura + HTML → api/coverage/
 node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG for manual EXIF e2e
 

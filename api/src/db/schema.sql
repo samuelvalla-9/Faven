@@ -72,3 +72,17 @@ CREATE TABLE IF NOT EXISTS reward_ledger (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Voucher milestones (Sprint 3 — data model only; redemption deferred).
+-- A row is recorded when a user's lifetime post count crosses a threshold.
+CREATE TABLE IF NOT EXISTS voucher_milestones (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  threshold INT NOT NULL,               -- posts required (5 / 10 / 20)
+  voucher_value_inr DECIMAL(8,2) NOT NULL DEFAULT 0,
+  status ENUM('earned','redeemed','expired') NOT NULL DEFAULT 'earned',
+  earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  redeemed_at DATETIME DEFAULT NULL,
+  UNIQUE KEY uq_user_threshold (user_id, threshold),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

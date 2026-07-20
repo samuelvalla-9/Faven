@@ -1,4 +1,4 @@
-const { computeStreak, STREAK_WEEKLY_BONUS_COINS } = require('../src/services/rewards');
+const { computeStreak, milestoneForPostCount, VOUCHER_MILESTONES, STREAK_WEEKLY_BONUS_COINS } = require('../src/services/rewards');
 
 const TODAY = '2026-07-20';
 
@@ -55,5 +55,33 @@ describe('computeStreak', () => {
   test('handles month/year boundaries', () => {
     expect(computeStreak('2026-06-30', 4, '2026-07-01').streakDays).toBe(5);
     expect(computeStreak('2025-12-31', 4, '2026-01-01').streakDays).toBe(5);
+  });
+});
+
+describe('milestoneForPostCount (voucher milestones)', () => {
+  test('fires exactly on each threshold', () => {
+    expect(milestoneForPostCount(5)).toEqual({ threshold: 5, valueInr: 100 });
+    expect(milestoneForPostCount(10)).toEqual({ threshold: 10, valueInr: 250 });
+    expect(milestoneForPostCount(20)).toEqual({ threshold: 20, valueInr: 600 });
+  });
+
+  test('null between and beyond thresholds', () => {
+    for (const n of [0, 1, 4, 6, 9, 11, 19, 21, 100]) {
+      expect(milestoneForPostCount(n)).toBeNull();
+    }
+  });
+
+  test('coerces string counts (SQL COUNT may come back stringy)', () => {
+    expect(milestoneForPostCount('10')).toEqual({ threshold: 10, valueInr: 250 });
+  });
+
+  test('handles garbage input safely', () => {
+    expect(milestoneForPostCount(null)).toBeNull();
+    expect(milestoneForPostCount(undefined)).toBeNull();
+    expect(milestoneForPostCount('abc')).toBeNull();
+  });
+
+  test('milestone table is 5/10/20 ascending', () => {
+    expect(VOUCHER_MILESTONES.map((m) => m.threshold)).toEqual([5, 10, 20]);
   });
 });

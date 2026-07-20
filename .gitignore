@@ -5,3 +5,4 @@ uploads/
 dist/
 *.log
 app/git-backup-old/
+coverage/

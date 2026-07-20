@@ -8,7 +8,21 @@
     "start": "node src/server.js",
     "db:init": "node src/db/init.js",
     "db:seed": "node src/db/seed.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "test:coverage": "jest --runInBand --coverage"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/db/init.js",
+      "!src/db/seed.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "cobertura"
+    ]
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

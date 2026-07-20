@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 20 July 2026 (Sprint 3: leaderboard polish + voucher milestones shipped)
+> **Last updated:** 20 July 2026 (Sprint 3: leaderboard polish + voucher milestones + credibility v1 shipped)
 
 ---
 
@@ -105,7 +105,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 - [x] **Leaderboard polish** — monthly reset framing, rank movement, current-user highlight — API: `GET /leaderboard` now returns `month`, `resets_in_days`, and per-row `rank`/`prev_rank`/`movement` (vs last month's standings, same ordering); app: season banner with reset countdown, ▲/▼/NEW movement indicators (`RankMovement`), "(you)" row with accent-tint highlight, verified-post count per row
 - [x] **Voucher milestones (data model only)** — 5/10/20 lifetime-post thresholds (₹100/₹250/₹600) — new `voucher_milestones` table (unique per user+threshold, status `earned/redeemed/expired`; redemption deferred); `milestoneForPostCount` in `api/src/services/rewards.js`; `POST /reviews` records milestone + `voucher` ledger entry on the exact crossing post; 5 new unit tests (48 total)
 - [ ] **Push notifications** — `expo-notifications` + FCM: reward earned, streak reminder
-- [ ] **Credibility score v1** — simple formula (verified posts weighted by tier)
+- [x] **Credibility score v1** — tier-weighted formula in `api/src/services/credibility.js`: full=10 / partial=5 / reviewed=1 pts, sponsored posts at half weight, +1 pt per streak day (cap 10), score cap 100 (all env-overridable `CRED_*`); idempotent full recompute persisted on every `POST /reviews` (response includes `credibility`); 8 unit tests in `api/tests/credibility.test.js`
 
 ---
 
@@ -164,7 +164,7 @@ powershell -ExecutionPolicy Bypass -File app/start-web.ps1   # → http://localh
 curl http://localhost:4000/health
 
 # Tests & coverage
-cd api; npm test                     # 48 tests (verification unit + EXIF integration + streak/rewards/milestones)
+cd api; npm test                     # 56 tests (verification + EXIF integration + streak/rewards/milestones + credibility)
 cd api; npm run test:coverage        # lcov + cobertura + HTML → api/coverage/
 node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG for manual EXIF e2e
 
@@ -172,7 +172,7 @@ node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG 
 ```
 
 **Key files:**
-- API entry: `api/src/server.js` · routes: `api/src/routes/` · verification: `api/src/services/verification.js` · rewards/streaks: `api/src/services/rewards.js`
+- API entry: `api/src/server.js` · routes: `api/src/routes/` · verification: `api/src/services/verification.js` · rewards/streaks: `api/src/services/rewards.js` · credibility: `api/src/services/credibility.js`
 - Tests: `api/tests/` (Jest; helper `tests/helpers/geotaggedJpeg.js` generates EXIF fixtures) · coverage config in `api/package.json`
 - Schema/seed: `api/src/db/schema.sql`, `seed.js` · env: `api/.env` (never commit)
 - App entry: `app/App.tsx` · theme: `app/src/theme.ts` · API client: `app/src/api.ts`

@@ -6,6 +6,7 @@ const pool = require('../db/pool');
 const auth = require('../middleware/auth');
 const { computeTier, verifyExif, verifyUpi, verifyReceipt, verifyAiAuthenticity } = require('../services/verification');
 const { computeStreak, milestoneForPostCount } = require('../services/rewards');
+const { recomputeCredibility } = require('../services/credibility');
 
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
 fs.mkdirSync(uploadDir, { recursive: true });
@@ -134,8 +135,12 @@ router.post('/', auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'r
       }
     }
 
+    // Credibility score v1 (Sprint 3): recompute from all reviews (tier-weighted,
+    // sponsored at half weight, + streak signal). Idempotent full recompute.
+    const credibility = await recomputeCredibility(pool, req.user.id);
+
     const [[review]] = await pool.query(`SELECT * FROM reviews WHERE id=?`, [r.insertId]);
-    res.status(201).json({ review, rewards, verification, streak: { days: streak.streakDays, extended: streak.changed } });
+    res.status(201).json({ review, rewards, verification, credibility, streak: { days: streak.streakDays, extended: streak.changed } });
   } catch (e) { next(e); }
 });
 

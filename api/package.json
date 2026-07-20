@@ -23,6 +23,7 @@
   "devDependencies": {
     "jest": "^30.4.2",
     "nodemon": "^3.1.4",
+    "piexifjs": "^1.0.6",
     "supertest": "^7.2.2"
   }
 }

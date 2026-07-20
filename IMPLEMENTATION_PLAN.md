@@ -91,6 +91,8 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 
 **Notes:** browsers strip EXIF GPS, so `exif_verified` needs a real-device photo upload to trigger — logic is unit-tested against synthetic EXIF data. Community corroboration stays 0 (post-MVP).
 
+**Demo goal achieved (20 Jul 2026):** generated a geotagged JPEG (`api/scripts/make-test-photo.js`, piexifjs) at CTR's coords, posted via API → `exif_verified=1`, tier `partial`. EXIF pipeline also covered by integration tests (`api/tests/exif.integration.test.js`, real files through exifr).
+
 ---
 
 ## Sprint 3 — Rewards & Retention (1 week)

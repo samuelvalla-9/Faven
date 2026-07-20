@@ -540,6 +540,7 @@ function ProfileScreen({
   const [city, setCity] = useState(user?.city || '');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
+  const [showRewards, setShowRewards] = useState(false);
 
   const save = async () => {
     setBusy(true);
@@ -568,8 +569,58 @@ function ProfileScreen({
       <TextInput style={s.input} placeholder="City" placeholderTextColor={colors.inkSoft} value={city} onChangeText={setCity} />
       <Button title={busy ? 'Saving…' : 'Save profile'} onPress={save} disabled={busy} />
       {msg ? <Text style={{ color: colors.green, textAlign: 'center' }}>{msg}</Text> : null}
+      <Button
+        title={showRewards ? 'Hide rewards history' : '🪙 Rewards history'}
+        variant="ghost"
+        onPress={() => setShowRewards((v) => !v)}
+      />
+      {showRewards ? <RewardsHistory /> : null}
       <Button title="Log out" variant="ghost" onPress={onLogout} />
     </ScrollView>
+  );
+}
+
+const REWARD_TYPE_LABELS: Record<string, string> = {
+  cashback_first_post: '💸 First-post cashback',
+  coins_post: '🪙 Post reward',
+  coins_streak: '🔥 Streak bonus',
+  voucher: '🎟️ Voucher',
+};
+
+function RewardsHistory() {
+  const [data, setData] = useState<{ entries: any[]; totals: { inr: number; coins: number } } | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    api.rewards().then(setData).catch((e: any) => setError(e.message));
+  }, []);
+
+  if (error) return <Empty text={error} />;
+  if (!data) return <ActivityIndicator color={colors.accent} />;
+
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <View style={{ flexDirection: 'row', gap: spacing.md }}>
+        <StatBox label="Total earned" value={`₹${data.totals.inr}`} />
+        <StatBox label="Coins earned" value={data.totals.coins} />
+      </View>
+      {data.entries.length === 0 ? (
+        <Empty text="No rewards yet — post a verified review to start earning!" />
+      ) : (
+        data.entries.map((e) => (
+          <View key={e.id} style={s.card}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={s.cardTitle}>{REWARD_TYPE_LABELS[e.type] || e.type}</Text>
+              <Text style={{ color: colors.green, fontWeight: '800' }}>
+                {Number(e.amount_inr) > 0 ? `₹${Number(e.amount_inr)}` : `+${e.coins} FAV`}
+              </Text>
+            </View>
+            {e.note ? <Text style={s.cardMeta}>{e.note}</Text> : null}
+            <Text style={s.cardMeta}>{new Date(e.created_at).toLocaleString()}</Text>
+          </View>
+        ))
+      )}
+    </View>
   );
 }
 

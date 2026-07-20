@@ -56,6 +56,8 @@ export const api = {
   restaurant: (id: number) => request<{ restaurant: any; reviews: any[] }>(`/restaurants/${id}`),
   leaderboard: (city = 'Bangalore') =>
     request<{ city: string; leaderboard: any[] }>(`/leaderboard?city=${encodeURIComponent(city)}`),
+  rewards: () =>
+    request<{ entries: any[]; totals: { inr: number; coins: number } }>('/rewards'),
   submitReview: (form: FormData) =>
     request<{ review: any; rewards: any[]; verification?: { tier: string; signals: Record<string, number>; details: any } }>('/reviews', { method: 'POST', body: form }),
 };

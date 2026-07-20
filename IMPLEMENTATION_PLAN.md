@@ -101,7 +101,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 **Goal:** Gamification loop feels real. Demo: streaks tick daily, leaderboard reflects verified posts, push notification on reward.
 
 - [x] **Streak logic** — server-side daily streak update on post (`streak_days`, `last_post_date`); streak coins (weekly bonus) — `api/src/services/rewards.js` (`computeStreak`: consecutive-day increment, same-day no-op, gap reset; +50 coins every 7-day multiple, env `STREAK_WEEKLY_BONUS_COINS`); wired into `POST /reviews` (ledger `coins_streak` entries; response includes `streak`); 12 unit tests in `api/tests/rewards.test.js`
-- [ ] **Rewards ledger screen** — cashback + coins history from `reward_ledger`
+- [x] **Rewards ledger screen** — cashback + coins history from `reward_ledger`: `GET /rewards` (auth; last 100 entries + ₹/coins totals, `api/src/routes/rewards.js`) · app: "Rewards history" toggle on Profile screen (`RewardsHistory` in `app/App.tsx`, totals StatBoxes + entry cards)
 - [ ] **Leaderboard polish** — monthly reset framing, rank movement, current-user highlight
 - [ ] **Voucher milestones (data model only)** — 5/10/20 posts thresholds recorded; redemption deferred
 - [ ] **Push notifications** — `expo-notifications` + FCM: reward earned, streak reminder

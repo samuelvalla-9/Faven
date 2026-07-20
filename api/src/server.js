@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const restaurantRoutes = require('./routes/restaurants');
 const reviewRoutes = require('./routes/reviews');
 const leaderboardRoutes = require('./routes/leaderboard');
+const rewardRoutes = require('./routes/rewards');
 
 const app = express();
 app.use(cors());
@@ -19,6 +20,7 @@ app.use('/auth', authRoutes);
 app.use('/restaurants', restaurantRoutes);
 app.use('/reviews', reviewRoutes);
 app.use('/leaderboard', leaderboardRoutes);
+app.use('/rewards', rewardRoutes);
 
 // central error handler
 app.use((err, _req, res, _next) => {

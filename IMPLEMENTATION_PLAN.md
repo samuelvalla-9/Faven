@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 20 July 2026 (Sprint 4: keyword search + Hive AI authenticity + moderation dashboard shipped)
+> **Last updated:** 20 July 2026 (Sprint 4: keyword search + Hive AI authenticity + moderation dashboard + app UX pass shipped)
 
 ---
 
@@ -116,8 +116,8 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 - [x] **AI photo authenticity** — Hive AI-generated media detection in `api/src/services/verification.js`: env-gated on `HIVE_API_KEY` (URL/threshold via `HIVE_API_URL`, `HIVE_AI_GEN_THRESHOLD`, default 0.7); pure `evaluateHiveResponse` parser (testable); provider errors **fail open** so posting never breaks; dev stub without key; 8 new tests (62 total)
 - [x] **Moderation dashboard (web)** — Express-served ember-styled page at `GET /admin` (`api/src/admin/dashboard.html`: paste admin JWT, tabs for flagged/visible/removed/all/users, flag·remove·restore with notes); API: `GET /admin/reviews?status=`, `POST /admin/reviews/:id/status`, `GET /admin/users` behind `auth` + new `admin` middleware (`users.is_admin`); reviews get `status`/`moderation_note` columns; removed reviews hidden from feed/detail/search; migration `api/scripts/migrate-sprint4-moderation.js`
 - [x] **Keyword search across reviews** — `GET /search?q=&limit=` (`api/src/routes/search.js`): matches restaurants (name/cuisine/address) + review bodies in one response; 400 on missing `q`, limit clamped 1–50; mounted in `server.js`
-- [ ] **UX pass** — empty states, error states, loading skeletons, pull-to-refresh
-- [ ] **Accessibility** — reduced-motion parity with landing page, contrast check on ember palette
+- [x] **UX pass** — in `app/App.tsx`: card loading skeletons (`SkeletonCards`, static — reduced-motion friendly), themed `ErrorState` with retry on Feed/Search/detail/Leaderboard/Rewards (errors no longer swallowed), "Searching…" feedback, pull-to-refresh added to Leaderboard (Feed already had it)
+- [ ] **Accessibility** — reduced-motion parity with landing page, contrast check on ember palette — *started: tab bar has `accessibilityRole`/`state`, skeletons are static (no animation)*
 - [ ] **Ember UI polish** — typography scale, consistent card/badge styling
 
 ---

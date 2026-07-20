@@ -188,19 +188,32 @@ function FeedScreen() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
   const load = useCallback(async () => {
     try {
       const { reviews } = await api.feed();
       setReviews(reviews);
-    } catch {}
+      setError('');
+    } catch (e: any) {
+      setError(e.message || 'Network error');
+    }
   }, []);
 
   useEffect(() => {
     load().finally(() => setLoading(false));
   }, [load]);
 
-  if (loading) return <Loading />;
+  if (loading) return <SkeletonCards photo />;
+  if (error && reviews.length === 0)
+    return (
+      <ErrorState
+        onRetry={() => {
+          setLoading(true);
+          load().finally(() => setLoading(false));
+        }}
+      />
+    );
   return (
     <FlatList
       data={reviews}
@@ -227,22 +240,32 @@ function FeedScreen() {
 function SearchScreen() {
   const [q, setQ] = useState('');
   const [results, setResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState('');
   const [selected, setSelected] = useState<any | null>(null);
   const [detail, setDetail] = useState<{ restaurant: any; reviews: any[] } | null>(null);
+  const [detailError, setDetailError] = useState('');
 
   useEffect(() => {
+    setSearching(true);
     const t = setTimeout(async () => {
       try {
         const { restaurants } = await api.restaurants(q);
         setResults(restaurants);
-      } catch {}
+        setError('');
+      } catch (e: any) {
+        setError(e.message || 'Network error');
+      } finally {
+        setSearching(false);
+      }
     }, 250);
     return () => clearTimeout(t);
   }, [q]);
 
   useEffect(() => {
     if (!selected) return setDetail(null);
-    api.restaurant(selected.id).then(setDetail).catch(() => {});
+    setDetailError('');
+    api.restaurant(selected.id).then(setDetail).catch((e: any) => setDetailError(e.message || 'Network error'));
   }, [selected]);
 
   if (selected) {
@@ -254,14 +277,16 @@ function SearchScreen() {
           {selected.cuisine} · {selected.area ? `${selected.area}, ` : ''}
           {selected.city}
         </Text>
-        {detail ? (
+        {detailError ? (
+          <ErrorState message={detailError} onRetry={() => setSelected({ ...selected })} />
+        ) : detail ? (
           detail.reviews.length ? (
             detail.reviews.map((r) => <ReviewCard key={r.id} review={r} showRestaurant={false} />)
           ) : (
             <Empty text="No reviews yet for this spot." />
           )
         ) : (
-          <Loading />
+          <SkeletonCards count={2} />
         )}
       </ScrollView>
     );
@@ -289,7 +314,15 @@ function SearchScreen() {
             </Text>
           </Pressable>
         )}
-        ListEmptyComponent={<Empty text="No matches — try another search." />}
+        ListEmptyComponent={
+          error ? (
+            <ErrorState message={error} onRetry={() => setQ((v) => v + '')} />
+          ) : searching ? (
+            <Empty text="Searching…" />
+          ) : (
+            <Empty text="No matches — try another search." />
+          )
+        }
       />
     </View>
   );
@@ -502,24 +535,49 @@ function LeaderboardScreen({ user }: { user: any }) {
   const [rows, setRows] = useState<any[]>([]);
   const [meta, setMeta] = useState<{ month?: string; resets_in_days?: number }>({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    api
-      .leaderboard(user?.city || 'Bangalore')
-      .then((r) => {
-        setRows(r.leaderboard);
-        setMeta({ month: r.month, resets_in_days: r.resets_in_days });
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+  const load = useCallback(async () => {
+    try {
+      const r = await api.leaderboard(user?.city || 'Bangalore');
+      setRows(r.leaderboard);
+      setMeta({ month: r.month, resets_in_days: r.resets_in_days });
+      setError('');
+    } catch (e: any) {
+      setError(e.message || 'Network error');
+    }
   }, [user?.city]);
 
-  if (loading) return <Loading />;
+  useEffect(() => {
+    load().finally(() => setLoading(false));
+  }, [load]);
+
+  if (loading) return <SkeletonCards />;
+  if (error && rows.length === 0)
+    return (
+      <ErrorState
+        onRetry={() => {
+          setLoading(true);
+          load().finally(() => setLoading(false));
+        }}
+      />
+    );
   return (
     <FlatList
       data={rows}
       keyExtractor={(r, i) => String(r.id ?? i)}
       contentContainerStyle={{ padding: spacing.md, gap: spacing.sm }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={async () => {
+            setRefreshing(true);
+            await load();
+            setRefreshing(false);
+          }}
+        />
+      }
       ListHeaderComponent={
         <View style={{ gap: spacing.xs, marginBottom: spacing.sm }}>
           <Text style={s.h1}>Top foodies · {user?.city || 'Bangalore'}</Text>
@@ -628,11 +686,16 @@ function RewardsHistory() {
   const [data, setData] = useState<{ entries: any[]; totals: { inr: number; coins: number } } | null>(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    api.rewards().then(setData).catch((e: any) => setError(e.message));
+  const load = useCallback(() => {
+    setError('');
+    api.rewards().then(setData).catch((e: any) => setError(e.message || 'Network error'));
   }, []);
 
-  if (error) return <Empty text={error} />;
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (error) return <ErrorState message={error} onRetry={load} />;
   if (!data) return <ActivityIndicator color={colors.accent} />;
 
   return (
@@ -676,6 +739,35 @@ function Loading() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <ActivityIndicator color={colors.accent} size="large" />
+    </View>
+  );
+}
+
+// Card-shaped loading skeleton (static shimmer-free placeholder — respects reduced motion)
+function SkeletonCards({ count = 3, photo = false }: { count?: number; photo?: boolean }) {
+  return (
+    <View style={{ padding: spacing.md, gap: spacing.md }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <View key={i} style={s.card} accessibilityLabel="Loading…">
+          <View style={[s.skelLine, { width: '55%' }]} />
+          <View style={[s.skelLine, { width: '35%' }]} />
+          {photo ? <View style={[s.cardPhoto, { backgroundColor: colors.accentTint }]} /> : null}
+          <View style={[s.skelLine, { width: '85%' }]} />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function ErrorState({ message, onRetry }: { message?: string; onRetry: () => void }) {
+  return (
+    <View style={{ alignItems: 'center', padding: spacing.lg, gap: spacing.sm }}>
+      <Text style={{ fontSize: 32 }}>🍲</Text>
+      <Text style={{ color: colors.ink, fontWeight: '700' }}>Something went cold</Text>
+      <Text style={{ color: colors.inkSoft, textAlign: 'center' }}>
+        {message || "We couldn't reach the kitchen. Check your connection and try again."}
+      </Text>
+      <Button title="Try again" variant="ghost" onPress={onRetry} />
     </View>
   );
 }
@@ -774,9 +866,16 @@ export default function App() {
         {tab === 'leaderboard' && <LeaderboardScreen user={user} />}
         {tab === 'profile' && <ProfileScreen user={user} onUserUpdated={setUser} onLogout={onLogout} />}
       </View>
-      <View style={s.tabBar}>
+      <View style={s.tabBar} accessibilityRole="tablist">
         {TABS.map((t) => (
-          <Pressable key={t.key} style={s.tabItem} onPress={() => setTab(t.key)}>
+          <Pressable
+            key={t.key}
+            style={s.tabItem}
+            onPress={() => setTab(t.key)}
+            accessibilityRole="tab"
+            accessibilityLabel={t.label}
+            accessibilityState={{ selected: tab === t.key }}
+          >
             <Text style={{ fontSize: 18 }}>{t.icon}</Text>
             <Text style={[s.tabLabel, tab === t.key && { color: colors.accent, fontWeight: '700' }]}>
               {t.label}
@@ -825,6 +924,12 @@ const s = StyleSheet.create({
   btnGhost: { backgroundColor: 'transparent' },
   btnText: { color: colors.paper2, fontWeight: '700', fontSize: 16 },
   error: { color: colors.accentInk, textAlign: 'center' },
+  skelLine: {
+    height: 14,
+    borderRadius: radius.sm ?? 6,
+    backgroundColor: colors.accentTint,
+    marginVertical: 2,
+  },
   h1: { fontSize: 24, fontWeight: '800', color: colors.ink },
   card: {
     backgroundColor: colors.paper2,

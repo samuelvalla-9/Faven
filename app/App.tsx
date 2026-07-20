@@ -487,14 +487,29 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
 
 // ---------- Leaderboard ----------
 
+function RankMovement({ movement, prevRank }: { movement: number | null; prevRank: number | null }) {
+  if (prevRank == null) return <Text style={{ color: colors.accent2, fontWeight: '700' }}>NEW</Text>;
+  if (!movement) return <Text style={{ color: colors.inkSoft }}>—</Text>;
+  const up = movement > 0;
+  return (
+    <Text style={{ color: up ? colors.green : colors.accent, fontWeight: '700' }}>
+      {up ? '▲' : '▼'} {Math.abs(movement)}
+    </Text>
+  );
+}
+
 function LeaderboardScreen({ user }: { user: any }) {
   const [rows, setRows] = useState<any[]>([]);
+  const [meta, setMeta] = useState<{ month?: string; resets_in_days?: number }>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api
       .leaderboard(user?.city || 'Bangalore')
-      .then((r) => setRows(r.leaderboard))
+      .then((r) => {
+        setRows(r.leaderboard);
+        setMeta({ month: r.month, resets_in_days: r.resets_in_days });
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [user?.city]);
@@ -505,20 +520,42 @@ function LeaderboardScreen({ user }: { user: any }) {
       data={rows}
       keyExtractor={(r, i) => String(r.id ?? i)}
       contentContainerStyle={{ padding: spacing.md, gap: spacing.sm }}
-      ListHeaderComponent={<Text style={s.h1}>Top foodies · {user?.city || 'Bangalore'}</Text>}
-      renderItem={({ item, index }) => (
-        <View style={[s.card, item.id === user?.id && { borderColor: colors.accent, borderWidth: 1 }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={s.cardTitle}>
-              #{index + 1} {item.name || `@${item.username || 'anon'}`}
+      ListHeaderComponent={
+        <View style={{ gap: spacing.xs, marginBottom: spacing.sm }}>
+          <Text style={s.h1}>Top foodies · {user?.city || 'Bangalore'}</Text>
+          {meta.month ? (
+            <Text style={s.cardMeta}>
+              {meta.month} season · resets in {meta.resets_in_days} day
+              {meta.resets_in_days === 1 ? '' : 's'}
             </Text>
-            <Text style={{ color: colors.accent2, fontWeight: '700' }}>
-              {item.posts_this_month ?? 0} posts
-            </Text>
-          </View>
-          <Text style={s.cardMeta}>Credibility {item.credibility_score ?? 0}</Text>
+          ) : null}
         </View>
-      )}
+      }
+      renderItem={({ item }) => {
+        const isMe = item.id === user?.id;
+        return (
+          <View
+            style={[
+              s.card,
+              isMe && { borderColor: colors.accent, borderWidth: 2, backgroundColor: colors.accentTint },
+            ]}
+          >
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={s.cardTitle}>
+                #{item.rank} {item.name || `@${item.username || 'anon'}`}
+                {isMe ? '  (you)' : ''}
+              </Text>
+              <RankMovement movement={item.movement} prevRank={item.prev_rank} />
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={s.cardMeta}>Credibility {item.credibility_score ?? 0}</Text>
+              <Text style={{ color: colors.accent2, fontWeight: '700' }}>
+                {item.posts_this_month ?? 0} posts · {item.fully_verified ?? 0} verified
+              </Text>
+            </View>
+          </View>
+        );
+      }}
       ListEmptyComponent={<Empty text="No rankings yet this month." />}
     />
   );

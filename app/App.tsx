@@ -304,10 +304,12 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState('');
   const [sponsored, setSponsored] = useState(false);
+  const [utr, setUtr] = useState('');
   const [photo, setPhoto] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [rewards, setRewards] = useState<any[] | null>(null);
+  const [verification, setVerification] = useState<any | null>(null);
 
   useEffect(() => {
     if (restaurant) return;
@@ -339,6 +341,7 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
       form.append('rating', String(rating));
       form.append('body', body);
       if (sponsored) form.append('is_sponsored', '1');
+      if (utr.trim()) form.append('utr', utr.trim());
       if (photo) {
         if (Platform.OS === 'web') {
           const blob = await (await fetch(photo.uri)).blob();
@@ -353,12 +356,14 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
       }
       const res = await api.submitReview(form);
       setRewards(res.rewards);
+      setVerification(res.verification || null);
       // reset form
       setRestaurant(null);
       setQ('');
       setRating(0);
       setBody('');
       setSponsored(false);
+      setUtr('');
       setPhoto(null);
     } catch (e: any) {
       setError(e.message);
@@ -419,6 +424,16 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
           {photo ? <Image source={{ uri: photo.uri }} style={s.cardPhoto} resizeMode="cover" /> : null}
           <Button title={photo ? 'Change photo' : 'Add photo'} variant="ghost" onPress={pickPhoto} />
 
+          <TextInput
+            style={s.input}
+            placeholder="UPI transaction ID (UTR, optional — boosts verification)"
+            placeholderTextColor={colors.inkSoft}
+            keyboardType="number-pad"
+            maxLength={12}
+            value={utr}
+            onChangeText={setUtr}
+          />
+
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
             <Switch
               value={sponsored}
@@ -441,6 +456,14 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
         <View style={s.modalBackdrop}>
           <View style={s.modalCard}>
             <Text style={s.h1}>🎉 Posted!</Text>
+            {verification ? (
+              <View style={{ alignItems: 'center', gap: 4 }}>
+                <TierBadge tier={verification.tier} />
+                <Text style={{ color: colors.inkSoft, fontSize: 13 }}>
+                  {Object.values(verification.signals || {}).filter(Boolean).length}/5 verification signals
+                </Text>
+              </View>
+            ) : null}
             {(rewards || []).map((r, i) => (
               <Text key={i} style={{ color: colors.ink, fontSize: 16 }}>
                 {r.type === 'cashback_first_post'

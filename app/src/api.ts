@@ -57,5 +57,5 @@ export const api = {
   leaderboard: (city = 'Bangalore') =>
     request<{ city: string; leaderboard: any[] }>(`/leaderboard?city=${encodeURIComponent(city)}`),
   submitReview: (form: FormData) =>
-    request<{ review: any; rewards: any[] }>('/reviews', { method: 'POST', body: form }),
+    request<{ review: any; rewards: any[]; verification?: { tier: string; signals: Record<string, number>; details: any } }>('/reviews', { method: 'POST', body: form }),
 };

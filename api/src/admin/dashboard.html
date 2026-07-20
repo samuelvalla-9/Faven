@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Faven — Moderation</title>
+<style>
+  :root {
+    --espresso:#1B151C; --espresso-2:#241C26; --accent:#E15544; --accent-ink:#B33726;
+    --accent-tint:#FBE1DC; --accent-2:#C98A4B; --green:#3E7D5A; --paper:#F5F1E8;
+    --paper-2:#FAF8F2; --ink:#1F1A1C; --ink-soft:#6B6165;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Georgia,'Times New Roman',serif; background:var(--paper); color:var(--ink); }
+  header { background:var(--espresso); color:var(--paper); padding:14px 24px; display:flex; align-items:center; gap:16px; }
+  header h1 { font-size:18px; margin:0; } header h1 span { color:var(--accent); }
+  header input { flex:1; max-width:420px; padding:8px 10px; border:1px solid var(--espresso-2); border-radius:8px; background:var(--espresso-2); color:var(--paper); font-family:inherit; }
+  header button, .tabs button { padding:8px 14px; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; font-family:inherit; }
+  main { max-width:960px; margin:0 auto; padding:20px; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .tabs button { background:var(--paper-2); color:var(--ink); border:1px solid #ddd3c4; }
+  .tabs button.active { background:var(--accent); color:#fff; border-color:var(--accent-ink); }
+  .card { background:var(--paper-2); border:1px solid #e5dccb; border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .card.flagged { border-left:4px solid var(--accent-2); }
+  .card.removed { opacity:.6; border-left:4px solid var(--accent-ink); }
+  .meta { color:var(--ink-soft); font-size:13px; margin-bottom:6px; }
+  .badge { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; margin-left:6px; color:#fff; }
+  .badge.full{background:var(--green)} .badge.partial{background:var(--accent-2)} .badge.reviewed{background:var(--ink-soft)}
+  .badge.sponsored{background:var(--accent-ink)} .badge.status{background:var(--espresso)}
+  .actions { margin-top:10px; display:flex; gap:8px; }
+  .actions button { padding:6px 12px; border-radius:8px; border:1px solid #ddd3c4; background:#fff; cursor:pointer; font-family:inherit; font-size:13px; }
+  .actions button.danger { background:var(--accent-ink); color:#fff; border-color:var(--accent-ink); }
+  .actions button.warn { background:var(--accent-2); color:#fff; border-color:var(--accent-2); }
+  .actions button.ok { background:var(--green); color:#fff; border-color:var(--green); }
+  table { width:100%; border-collapse:collapse; background:var(--paper-2); border-radius:12px; overflow:hidden; }
+  th,td { text-align:left; padding:10px 12px; border-bottom:1px solid #eee4d2; font-size:14px; }
+  th { background:var(--espresso); color:var(--paper); font-size:12px; letter-spacing:.05em; text-transform:uppercase; }
+  #msg { color:var(--accent-ink); margin-bottom:12px; min-height:20px; }
+  img.thumb { max-height:120px; border-radius:8px; display:block; margin-top:8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Faven <span>Moderation</span></h1>
+  <input id="token" type="password" placeholder="Paste admin JWT token…" />
+  <button onclick="saveToken()">Connect</button>
+</header>
+<main>
+  <div id="msg"></div>
+  <div class="tabs">
+    <button data-tab="flagged" class="active" onclick="setTab('flagged')">Flagged</button>
+    <button data-tab="visible" onclick="setTab('visible')">Visible</button>
+    <button data-tab="removed" onclick="setTab('removed')">Removed</button>
+    <button data-tab="all" onclick="setTab('all')">All reviews</button>
+    <button data-tab="users" onclick="setTab('users')">Users</button>
+  </div>
+  <div id="content"></div>
+</main>
+<script>
+let tab = 'flagged';
+const $ = (id) => document.getElementById(id);
+const token = () => localStorage.getItem('faven_admin_token') || '';
+$('token').value = token();
+
+function saveToken() { localStorage.setItem('faven_admin_token', $('token').value.trim()); load(); }
+function setTab(t) {
+  tab = t;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+  load();
+}
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token(), ...(opts.headers||{}) } });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || res.status);
+  return json;
+}
+function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function load() {
+  $('msg').textContent = '';
+  try {
+    if (tab === 'users') return renderUsers((await api('/admin/users')).users);
+    renderReviews((await api('/admin/reviews?status=' + tab)).reviews);
+  } catch (e) { $('msg').textContent = 'Error: ' + e.message + (token() ? '' : ' — paste an admin token above.'); $('content').innerHTML = ''; }
+}
+function renderReviews(list) {
+  $('content').innerHTML = list.length ? list.map(r => `
+    <div class="card ${r.status}">
+      <div class="meta">#${r.id} · <b>${esc(r.user_name || r.username)}</b> @ ${esc(r.restaurant_name)}, ${esc(r.city)} · ${'★'.repeat(r.rating)} · ${new Date(r.created_at).toLocaleString()}
+        <span class="badge ${r.verification_tier}">${r.verification_tier}</span>
+        ${r.is_sponsored ? '<span class="badge sponsored">sponsored</span>' : ''}
+        <span class="badge status">${r.status}</span>
+      </div>
+      <div>${esc(r.body)}</div>
+      ${r.photo_url ? `<img class="thumb" src="${esc(r.photo_url)}" />` : ''}
+      ${r.moderation_note ? `<div class="meta">Note: ${esc(r.moderation_note)}</div>` : ''}
+      <div class="actions">
+        ${r.status !== 'flagged' ? `<button class="warn" onclick="setStatus(${r.id},'flagged')">Flag</button>` : ''}
+        ${r.status !== 'removed' ? `<button class="danger" onclick="setStatus(${r.id},'removed')">Remove</button>` : ''}
+        ${r.status !== 'visible' ? `<button class="ok" onclick="setStatus(${r.id},'visible')">Restore</button>` : ''}
+      </div>
+    </div>`).join('') : '<div class="card">Nothing here. 🎉</div>';
+}
+function renderUsers(list) {
+  $('content').innerHTML = `<table><tr><th>ID</th><th>Name</th><th>Username</th><th>City</th><th>Cred</th><th>Coins</th><th>Posts</th><th>Removed</th><th>Admin</th></tr>` +
+    list.map(u => `<tr><td>${u.id}</td><td>${esc(u.name)}</td><td>${esc(u.username)}</td><td>${esc(u.city)}</td><td>${u.credibility_score}</td><td>${u.coins}</td><td>${u.total_posts}</td><td>${u.removed_posts||0}</td><td>${u.is_admin ? '✔' : ''}</td></tr>`).join('') + '</table>';
+}
+async function setStatus(id, status) {
+  const note = status === 'visible' ? null : (prompt('Moderation note (optional):') || null);
+  try { await api(`/admin/reviews/${id}/status`, { method: 'POST', body: JSON.stringify({ status, note }) }); load(); }
+  catch (e) { $('msg').textContent = 'Error: ' + e.message; }
+}
+if (token()) load(); else $('msg').textContent = 'Paste an admin JWT token above to connect.';
+</script>
+</body>
+</html>

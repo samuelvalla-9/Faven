@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 20 July 2026 (Sprint 4: keyword search + Hive AI photo authenticity shipped)
+> **Last updated:** 20 July 2026 (Sprint 4: keyword search + Hive AI authenticity + moderation dashboard shipped)
 
 ---
 
@@ -114,7 +114,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 **Goal:** MVP feature-complete per product doc. Demo: moderation dashboard + AI check + polished ember UI.
 
 - [x] **AI photo authenticity** — Hive AI-generated media detection in `api/src/services/verification.js`: env-gated on `HIVE_API_KEY` (URL/threshold via `HIVE_API_URL`, `HIVE_AI_GEN_THRESHOLD`, default 0.7); pure `evaluateHiveResponse` parser (testable); provider errors **fail open** so posting never breaks; dev stub without key; 8 new tests (62 total)
-- [ ] **Moderation dashboard (web)** — minimal admin page: review queue, flag/remove, user list (can be a simple Express-served page or separate small React app)
+- [x] **Moderation dashboard (web)** — Express-served ember-styled page at `GET /admin` (`api/src/admin/dashboard.html`: paste admin JWT, tabs for flagged/visible/removed/all/users, flag·remove·restore with notes); API: `GET /admin/reviews?status=`, `POST /admin/reviews/:id/status`, `GET /admin/users` behind `auth` + new `admin` middleware (`users.is_admin`); reviews get `status`/`moderation_note` columns; removed reviews hidden from feed/detail/search; migration `api/scripts/migrate-sprint4-moderation.js`
 - [x] **Keyword search across reviews** — `GET /search?q=&limit=` (`api/src/routes/search.js`): matches restaurants (name/cuisine/address) + review bodies in one response; 400 on missing `q`, limit clamped 1–50; mounted in `server.js`
 - [ ] **UX pass** — empty states, error states, loading skeletons, pull-to-refresh
 - [ ] **Accessibility** — reduced-motion parity with landing page, contrast check on ember palette
@@ -162,6 +162,9 @@ powershell -ExecutionPolicy Bypass -File app/start-web.ps1   # → http://localh
 
 # Health check
 curl http://localhost:4000/health
+
+# Moderation dashboard (paste an admin JWT — user must have users.is_admin=1)
+# http://localhost:4000/admin · one-off migration: node api/scripts/migrate-sprint4-moderation.js
 
 # Tests & coverage
 cd api; npm test                     # 62 tests (verification + Hive parsing + EXIF integration + streak/rewards/milestones + credibility)

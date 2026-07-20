@@ -24,7 +24,7 @@ router.get('/:id', async (req, res, next) => {
     const [reviews] = await pool.query(
       `SELECT r.*, u.username, u.name AS user_name, u.credibility_score
        FROM reviews r JOIN users u ON u.id = r.user_id
-       WHERE r.restaurant_id=? ORDER BY r.created_at DESC LIMIT 50`,
+       WHERE r.restaurant_id=? AND r.status <> 'removed' ORDER BY r.created_at DESC LIMIT 50`,
       [req.params.id]
     );
     res.json({ restaurant, reviews });

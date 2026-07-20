@@ -26,6 +26,7 @@ router.get('/', async (req, res, next) => {
        JOIN users u ON u.id = r.user_id
        JOIN restaurants rest ON rest.id = r.restaurant_id
        WHERE r.body LIKE CONCAT('%', ?, '%')
+         AND r.status <> 'removed'
        ORDER BY r.created_at DESC LIMIT ?`,
       [q, limit]
     );

@@ -27,6 +27,7 @@ router.get('/feed', async (_req, res, next) => {
        FROM reviews r
        JOIN users u ON u.id = r.user_id
        JOIN restaurants rest ON rest.id = r.restaurant_id
+       WHERE r.status <> 'removed'
        ORDER BY r.created_at DESC LIMIT 50`
     );
     res.json({ reviews: rows });

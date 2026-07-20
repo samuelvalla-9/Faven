@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   streak_days INT NOT NULL DEFAULT 0,
   last_post_date DATE DEFAULT NULL,
   first_post_rewarded TINYINT(1) NOT NULL DEFAULT 0,
+  is_admin TINYINT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -54,6 +55,9 @@ CREATE TABLE IF NOT EXISTS reviews (
   community_verified TINYINT(1) NOT NULL DEFAULT 0,
   verification_tier ENUM('reviewed','partial','full') NOT NULL DEFAULT 'reviewed',
   is_sponsored TINYINT(1) NOT NULL DEFAULT 0,
+  -- moderation (Sprint 4): visible | flagged (needs review) | removed (hidden)
+  status ENUM('visible','flagged','removed') NOT NULL DEFAULT 'visible',
+  moderation_note VARCHAR(255) DEFAULT NULL,
   visited_at DATETIME DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,

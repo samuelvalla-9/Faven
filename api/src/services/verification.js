@@ -118,14 +118,55 @@ async function verifyReceipt(receiptPath, _restaurant) {
   return { verified: false, reasons: ['ocr_not_implemented'] };
 }
 
-// AI photo authenticity — Hive Moderation API in Sprint 4; permissive stub in dev.
+// ---- AI photo authenticity (Sprint 4) ----
+// Provider: Hive AI-generated media detection (env-gated via HIVE_API_KEY).
+// Without a key, dev stub passes photos as authentic. Provider errors fall back
+// gracefully (photo counts as authentic, reason recorded) so posting never breaks.
+
+const AI_GEN_THRESHOLD = Number(process.env.HIVE_AI_GEN_THRESHOLD || 0.7);
+const HIVE_API_URL = process.env.HIVE_API_URL || 'https://api.thehive.ai/api/v2/task/sync';
+
+// Pure logic: interpret a Hive sync-task response.
+// Looks for the `ai_generated` class score in the first output's classes.
+function evaluateHiveResponse(json, threshold = AI_GEN_THRESHOLD) {
+  const classes = json?.status?.[0]?.response?.output?.[0]?.classes
+    || json?.output?.[0]?.classes;
+  if (!Array.isArray(classes)) return { verified: false, aiGenScore: null, reasons: ['unexpected_response'] };
+  const aiGen = classes.find((c) => c.class === 'ai_generated');
+  if (!aiGen || typeof aiGen.score !== 'number') {
+    return { verified: false, aiGenScore: null, reasons: ['unexpected_response'] };
+  }
+  if (aiGen.score >= threshold) {
+    return { verified: false, aiGenScore: aiGen.score, reasons: ['ai_generated_detected'] };
+  }
+  return { verified: true, aiGenScore: aiGen.score, reasons: ['hive_check_passed'] };
+}
+
+async function callHive(photoPath) {
+  const fs = require('fs');
+  const path = require('path');
+  const form = new FormData();
+  const buf = fs.readFileSync(photoPath);
+  form.append('media', new Blob([buf]), path.basename(photoPath));
+  const res = await fetch(HIVE_API_URL, {
+    method: 'POST',
+    headers: { Authorization: `Token ${process.env.HIVE_API_KEY}` },
+    body: form,
+  });
+  if (!res.ok) throw new Error(`hive_http_${res.status}`);
+  return res.json();
+}
+
 async function verifyAiAuthenticity(photoPath) {
   if (!photoPath) return { verified: false, reasons: ['no_photo'] };
-  if (process.env.HIVE_API_KEY) {
-    // TODO Sprint 4: call Hive Moderation API
-    return { verified: false, reasons: ['provider_not_implemented'] };
+  if (!process.env.HIVE_API_KEY) return { verified: true, reasons: ['dev_stub'] };
+  try {
+    const json = await callHive(photoPath);
+    return evaluateHiveResponse(json);
+  } catch (err) {
+    // Fail open: provider outage must not block posting; signal simply passes with a note.
+    return { verified: true, reasons: ['provider_error_fail_open', String(err.message || err)] };
   }
-  return { verified: true, reasons: ['dev_stub'] };
 }
 
 module.exports = {
@@ -137,6 +178,8 @@ module.exports = {
   verifyUpi,
   verifyReceipt,
   verifyAiAuthenticity,
+  evaluateHiveResponse,
   MAX_DISTANCE_METERS,
   MAX_PHOTO_AGE_HOURS,
+  AI_GEN_THRESHOLD,
 };

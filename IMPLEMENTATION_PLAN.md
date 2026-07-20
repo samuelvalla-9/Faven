@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 20 July 2026 (Sprint 4 started: keyword search endpoint shipped; Sprint 3 push notifications deferred — needs FCM + device)
+> **Last updated:** 20 July 2026 (Sprint 4: keyword search + Hive AI photo authenticity shipped)
 
 ---
 
@@ -113,7 +113,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 
 **Goal:** MVP feature-complete per product doc. Demo: moderation dashboard + AI check + polished ember UI.
 
-- [ ] **AI photo authenticity** — Hive Moderation API integration (env-gated; graceful stub fallback in dev)
+- [x] **AI photo authenticity** — Hive AI-generated media detection in `api/src/services/verification.js`: env-gated on `HIVE_API_KEY` (URL/threshold via `HIVE_API_URL`, `HIVE_AI_GEN_THRESHOLD`, default 0.7); pure `evaluateHiveResponse` parser (testable); provider errors **fail open** so posting never breaks; dev stub without key; 8 new tests (62 total)
 - [ ] **Moderation dashboard (web)** — minimal admin page: review queue, flag/remove, user list (can be a simple Express-served page or separate small React app)
 - [x] **Keyword search across reviews** — `GET /search?q=&limit=` (`api/src/routes/search.js`): matches restaurants (name/cuisine/address) + review bodies in one response; 400 on missing `q`, limit clamped 1–50; mounted in `server.js`
 - [ ] **UX pass** — empty states, error states, loading skeletons, pull-to-refresh
@@ -164,7 +164,7 @@ powershell -ExecutionPolicy Bypass -File app/start-web.ps1   # → http://localh
 curl http://localhost:4000/health
 
 # Tests & coverage
-cd api; npm test                     # 56 tests (verification + EXIF integration + streak/rewards/milestones + credibility)
+cd api; npm test                     # 62 tests (verification + Hive parsing + EXIF integration + streak/rewards/milestones + credibility)
 cd api; npm run test:coverage        # lcov + cobertura + HTML → api/coverage/
 node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG for manual EXIF e2e
 

@@ -134,4 +134,47 @@ describe('verifyAiAuthenticity', () => {
     delete process.env.HIVE_API_KEY;
     expect((await verifyAiAuthenticity('/tmp/photo.jpg')).verified).toBe(true);
   });
+  test('provider error with HIVE_API_KEY → fail open (verified, reason noted)', async () => {
+    process.env.HIVE_API_KEY = 'test-key';
+    try {
+      // nonexistent file → readFileSync throws → fail-open path
+      const r = await verifyAiAuthenticity('/nonexistent/photo.jpg');
+      expect(r.verified).toBe(true);
+      expect(r.reasons).toContain('provider_error_fail_open');
+    } finally {
+      delete process.env.HIVE_API_KEY;
+    }
+  });
+});
+
+describe('evaluateHiveResponse', () => {
+  const { evaluateHiveResponse } = require('../src/services/verification');
+  const hiveJson = (score) => ({
+    status: [{ response: { output: [{ classes: [{ class: 'ai_generated', score }, { class: 'not_ai_generated', score: 1 - score }] }] } }],
+  });
+
+  test('low ai_generated score → verified', () => {
+    const r = evaluateHiveResponse(hiveJson(0.05));
+    expect(r.verified).toBe(true);
+    expect(r.aiGenScore).toBe(0.05);
+    expect(r.reasons).toContain('hive_check_passed');
+  });
+  test('score at/above threshold → not verified', () => {
+    const r = evaluateHiveResponse(hiveJson(0.95));
+    expect(r.verified).toBe(false);
+    expect(r.reasons).toContain('ai_generated_detected');
+  });
+  test('custom threshold respected', () => {
+    expect(evaluateHiveResponse(hiveJson(0.5), 0.4).verified).toBe(false);
+    expect(evaluateHiveResponse(hiveJson(0.5), 0.6).verified).toBe(true);
+  });
+  test('flat output shape (no status wrapper) also parsed', () => {
+    const r = evaluateHiveResponse({ output: [{ classes: [{ class: 'ai_generated', score: 0.1 }] }] });
+    expect(r.verified).toBe(true);
+  });
+  test('malformed response → not verified with unexpected_response', () => {
+    expect(evaluateHiveResponse({}).reasons).toContain('unexpected_response');
+    expect(evaluateHiveResponse({ status: [{ response: { output: [{ classes: [] }] } }] }).reasons).toContain('unexpected_response');
+    expect(evaluateHiveResponse(null).reasons).toContain('unexpected_response');
+  });
 });

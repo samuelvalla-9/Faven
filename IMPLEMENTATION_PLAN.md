@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 20 July 2026 (Sprint 3: leaderboard polish + voucher milestones + credibility v1 shipped)
+> **Last updated:** 20 July 2026 (Sprint 4 started: keyword search endpoint shipped; Sprint 3 push notifications deferred — needs FCM + device)
 
 ---
 
@@ -104,18 +104,18 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 - [x] **Rewards ledger screen** — cashback + coins history from `reward_ledger`: `GET /rewards` (auth; last 100 entries + ₹/coins totals, `api/src/routes/rewards.js`) · app: "Rewards history" toggle on Profile screen (`RewardsHistory` in `app/App.tsx`, totals StatBoxes + entry cards)
 - [x] **Leaderboard polish** — monthly reset framing, rank movement, current-user highlight — API: `GET /leaderboard` now returns `month`, `resets_in_days`, and per-row `rank`/`prev_rank`/`movement` (vs last month's standings, same ordering); app: season banner with reset countdown, ▲/▼/NEW movement indicators (`RankMovement`), "(you)" row with accent-tint highlight, verified-post count per row
 - [x] **Voucher milestones (data model only)** — 5/10/20 lifetime-post thresholds (₹100/₹250/₹600) — new `voucher_milestones` table (unique per user+threshold, status `earned/redeemed/expired`; redemption deferred); `milestoneForPostCount` in `api/src/services/rewards.js`; `POST /reviews` records milestone + `voucher` ledger entry on the exact crossing post; 5 new unit tests (48 total)
-- [ ] **Push notifications** — `expo-notifications` + FCM: reward earned, streak reminder
+- [ ] **Push notifications** — `expo-notifications` + FCM: reward earned, streak reminder — **deferred**: needs FCM setup + physical device/EAS build (blocked on corp setup, same as Sprint 2 EAS item)
 - [x] **Credibility score v1** — tier-weighted formula in `api/src/services/credibility.js`: full=10 / partial=5 / reviewed=1 pts, sponsored posts at half weight, +1 pt per streak day (cap 10), score cap 100 (all env-overridable `CRED_*`); idempotent full recompute persisted on every `POST /reviews` (response includes `credibility`); 8 unit tests in `api/tests/credibility.test.js`
 
 ---
 
-## Sprint 4 — Trust & Polish (1 week)
+## Sprint 4 — Trust & Polish (1 week) ⬅ IN PROGRESS
 
 **Goal:** MVP feature-complete per product doc. Demo: moderation dashboard + AI check + polished ember UI.
 
 - [ ] **AI photo authenticity** — Hive Moderation API integration (env-gated; graceful stub fallback in dev)
 - [ ] **Moderation dashboard (web)** — minimal admin page: review queue, flag/remove, user list (can be a simple Express-served page or separate small React app)
-- [ ] **Keyword search across reviews** — `GET /search?q=` (restaurant + review body)
+- [x] **Keyword search across reviews** — `GET /search?q=&limit=` (`api/src/routes/search.js`): matches restaurants (name/cuisine/address) + review bodies in one response; 400 on missing `q`, limit clamped 1–50; mounted in `server.js`
 - [ ] **UX pass** — empty states, error states, loading skeletons, pull-to-refresh
 - [ ] **Accessibility** — reduced-motion parity with landing page, contrast check on ember palette
 - [ ] **Ember UI polish** — typography scale, consistent card/badge styling
@@ -172,7 +172,7 @@ node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG 
 ```
 
 **Key files:**
-- API entry: `api/src/server.js` · routes: `api/src/routes/` · verification: `api/src/services/verification.js` · rewards/streaks: `api/src/services/rewards.js` · credibility: `api/src/services/credibility.js`
+- API entry: `api/src/server.js` · routes: `api/src/routes/` (incl. `search.js`) · verification: `api/src/services/verification.js` · rewards/streaks: `api/src/services/rewards.js` · credibility: `api/src/services/credibility.js`
 - Tests: `api/tests/` (Jest; helper `tests/helpers/geotaggedJpeg.js` generates EXIF fixtures) · coverage config in `api/package.json`
 - Schema/seed: `api/src/db/schema.sql`, `seed.js` · env: `api/.env` (never commit)
 - App entry: `app/App.tsx` · theme: `app/src/theme.ts` · API client: `app/src/api.ts`

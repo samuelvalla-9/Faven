@@ -1,5 +1,20 @@
 # Copilot Instructions for Faven
 
+## Agent skills (use when relevant)
+
+The `.github/` folder contains skill packs — each has a `SKILL.md` with instructions and often `scripts/` to run. **Before starting a task that matches one of these domains, read the relevant `SKILL.md` and follow it:**
+
+| Skill folder | Use for |
+|---|---|
+| `brand-guidelines/` | Applying brand colors/typography to artifacts |
+| `canvas-design/` | Posters, static art, visual design pieces (.png/.pdf) |
+| `web-artifacts-builder/` | Complex multi-component HTML artifacts (React + Tailwind + shadcn/ui) |
+| `docx/`, `pptx/`, `xlsx/`, `pdf/` | Creating/editing Word, PowerPoint, Excel, PDF files |
+| `skill-creator/` | Creating or evaluating new skills |
+| `learn/`, `schedule/`, `consolidate-memory/`, `setup-cowork/` | Learning workflows, scheduling, memory consolidation, cowork setup |
+
+Design work on this project should combine these skills with the reference landing page ([faven-landing_4.html](../faven-landing_4.html)) — the app's Ember & Parchment design language derives from it.
+
 ## Git workflow (mandatory)
 
 Follow the full protocol in [GIT_PROTOCOL.md](../GIT_PROTOCOL.md). Key points:

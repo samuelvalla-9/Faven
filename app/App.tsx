@@ -851,21 +851,22 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
       {TABS.map((t) => {
         const active = tab === t.key;
         return (
-          <ScalePressable
-            key={t.key}
-            style={s.tabItem}
-            scaleTo={0.9}
-            onPress={() => setTab(t.key)}
-            accessibilityRole="tab"
-            accessibilityLabel={t.label}
-            accessibilityState={{ selected: active }}
-          >
-            <View style={[s.tabDot, active && s.tabDotActive]} />
-            <Text style={{ fontSize: 18, opacity: active ? 1 : 0.6 }}>{t.icon}</Text>
-            <Text style={[s.tabLabel, active && { color: colors.accent2, fontWeight: '700' }]}>
-              {t.label}
-            </Text>
-          </ScalePressable>
+          <View key={t.key} style={{ flex: 1 }}>
+            <ScalePressable
+              style={s.tabItem}
+              scaleTo={0.9}
+              onPress={() => setTab(t.key)}
+              accessibilityRole="tab"
+              accessibilityLabel={t.label}
+              accessibilityState={{ selected: active }}
+            >
+              <View style={[s.tabDot, active && s.tabDotActive]} />
+              <Text style={{ fontSize: 18, opacity: active ? 1 : 0.6 }}>{t.icon}</Text>
+              <Text style={[s.tabLabel, active && { color: colors.accent2, fontWeight: '700' }]}>
+                {t.label}
+              </Text>
+            </ScalePressable>
+          </View>
         );
       })}
     </View>

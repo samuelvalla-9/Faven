@@ -1,4 +1,6 @@
 // Ember & Parchment design tokens — mirrors faven-landing_4.html [data-theme="ember"]
+import { Platform } from 'react-native';
+
 export const colors = {
   espresso: '#1B151C',
   espresso2: '#241C26',
@@ -16,11 +18,23 @@ export const colors = {
   paper2: '#FAF8F2',
   ink: '#1F1A1C',
   inkSoft: '#6B6165',
+  // Landing-page derived lines/overlays (faven-landing_4.html)
+  linePaper: 'rgba(31,26,28,0.14)', // hairline borders on paper
+  lineDark: 'rgba(245,241,232,0.14)', // hairline borders on espresso
+  onDark: 'rgba(245,241,232,0.74)', // secondary text on espresso
+  onDarkSoft: 'rgba(245,241,232,0.48)', // tertiary text on espresso
 };
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 };
 
 export const radius = { sm: 8, md: 14, lg: 22, pill: 999 };
+
+// Landing page pairs a serif display with mono "receipt" labels. On native we
+// lean on system fonts that carry the same voice.
+export const fonts = {
+  display: Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia, serif' }) as string,
+  mono: Platform.select({ ios: 'Courier New', android: 'monospace', default: 'JetBrains Mono, monospace' }) as string,
+};
 
 // Typography scale (Sprint 4 polish) — one source of truth for font sizing.
 export const typeScale = {

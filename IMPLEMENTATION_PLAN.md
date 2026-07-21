@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 20 July 2026 (Sprint 4 ✓ complete: search, AI authenticity, moderation dashboard, UX/a11y/UI polish)
+> **Last updated:** 21 July 2026 (Post-Sprint-4: landing-page design language + motion pass on the app)
 
 ---
 
@@ -119,6 +119,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 - [x] **UX pass** — in `app/App.tsx`: card loading skeletons (`SkeletonCards`, static — reduced-motion friendly), themed `ErrorState` with retry on Feed/Search/detail/Leaderboard/Rewards (errors no longer swallowed), "Searching…" feedback, pull-to-refresh added to Leaderboard (Feed already had it)
 - [x] **Accessibility** — WCAG AA contrast audit + fixes: buttons use `accentInk` bg (white 6.0:1 vs accent's 3.76:1), new `accent2Ink` token (#8A5A24, 5.5:1 on paper) for amber text, tier badges get per-tier text colors (`tierTextColors`: ink-on-amber 5.9:1, white-on-greenDeep 8.1:1); tab bar `accessibilityRole/state`; skeletons static (reduced-motion safe)
 - [x] **Ember UI polish** — `typeScale` typography tokens in `app/src/theme.ts` (display/h1/h2/body/meta/badge) applied across headings, cards, badges, buttons; consistent badge styling via `tierColors` + `tierTextColors`
+- [x] **Landing-page design language + motion pass (21 Jul)** — app UI now mirrors `faven-landing_4.html` (Ember & Parchment): espresso app bar + tab bar with accent indicator, dark auth hero with mono "stamp" eyebrow + serif display logo, receipt-style review cards (avatar header, hairline rule, mono stamp badges), mono coin pill. New `app/src/motion.tsx` animation toolkit (FadeInUp staggered entrances, ScalePressable spring press, Pulse skeletons, PopIn reward modal, useBounce star rating) — all built on core `Animated` (no new deps) and honoring reduce-motion.
 
 ---
 

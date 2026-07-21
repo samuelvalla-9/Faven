@@ -22,7 +22,9 @@ import {
   View,
 } from 'react-native';
 import { api, BASE_URL, setToken } from './src/api';
-import { colors, radius, spacing, tierColors, tierLabels, tierTextColors, typeScale } from './src/theme';
+import { colors, fonts, radius, spacing, tierColors, tierLabels, tierTextColors, typeScale } from './src/theme';
+import { FadeInUp, PopIn, Pulse, ScalePressable, useBounce } from './src/motion';
+import { Animated } from 'react-native';
 
 const TOKEN_KEY = 'faven.token';
 
@@ -44,38 +46,74 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
+// Interactive star for the post form — bounces when it becomes selected.
+function RatingStar({ n, rating, onPress }: { n: number; rating: number; onPress: () => void }) {
+  const selected = n <= rating;
+  const scale = useBounce(selected);
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`}>
+      <Animated.Text
+        style={{
+          fontSize: 34,
+          color: selected ? colors.accent2 : colors.inkSoft,
+          transform: [{ scale }],
+        }}
+      >
+        ★
+      </Animated.Text>
+    </Pressable>
+  );
+}
+
 function TierBadge({ tier, sponsored }: { tier: string; sponsored?: boolean }) {
   return (
-    <View style={{ flexDirection: 'row', gap: spacing.xs }}>
+    <View style={{ flexDirection: 'row', gap: spacing.xs, flexWrap: 'wrap' }}>
       <View style={[s.badge, { backgroundColor: tierColors[tier] || colors.inkSoft }]}>
-        <Text style={[s.badgeText, { color: tierTextColors[tier] || colors.paper2 }]}>{tierLabels[tier] || tier}</Text>
+        <Text style={[s.badgeText, { color: tierTextColors[tier] || colors.paper2 }]}>
+          {(tierLabels[tier] || tier).toUpperCase()}
+        </Text>
       </View>
       {sponsored ? (
-        <View style={[s.badge, { backgroundColor: colors.accentInk }]}>
-          <Text style={s.badgeText}>Sponsored</Text>
+        <View style={[s.badgeStamp]}>
+          <Text style={[s.badgeText, { color: colors.accentInk }]}>SPONSORED</Text>
         </View>
       ) : null}
     </View>
   );
 }
 
+function Avatar({ name }: { name?: string | null }) {
+  const initial = (name || 'a').trim().charAt(0).toUpperCase();
+  return (
+    <View style={s.avatar}>
+      <Text style={s.avatarText}>{initial}</Text>
+    </View>
+  );
+}
+
 function ReviewCard({ review, showRestaurant = true }: { review: any; showRestaurant?: boolean }) {
   const uri = photoUri(review.photo_url);
+  const who = review.username || 'anon';
   return (
     <View style={s.card}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={s.cardTitle}>
-          {showRestaurant ? review.restaurant_name : `@${review.username || 'anon'}`}
-        </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+        <Avatar name={showRestaurant ? who : review.restaurant_name} />
+        <View style={{ flex: 1 }}>
+          <Text style={s.cardTitle} numberOfLines={1}>
+            {showRestaurant ? review.restaurant_name : `@${who}`}
+          </Text>
+          {showRestaurant ? (
+            <Text style={s.cardMeta}>
+              @{who}
+              {review.city ? ` · ${review.city}` : ''}
+            </Text>
+          ) : null}
+        </View>
         <Stars rating={Number(review.rating)} />
       </View>
-      {showRestaurant ? (
-        <Text style={s.cardMeta}>
-          @{review.username || 'anon'} · {review.city || ''}
-        </Text>
-      ) : null}
       {uri ? <Image source={{ uri }} style={s.cardPhoto} resizeMode="cover" /> : null}
       {review.body ? <Text style={s.cardBody}>{review.body}</Text> : null}
+      <View style={s.cardRule} />
       <TierBadge tier={review.verification_tier} sponsored={!!review.is_sponsored} />
     </View>
   );
@@ -93,17 +131,14 @@ function Button({
   variant?: 'primary' | 'ghost';
 }) {
   return (
-    <Pressable
+    <ScalePressable
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed }) => [
-        s.btn,
-        variant === 'ghost' && s.btnGhost,
-        (pressed || disabled) && { opacity: 0.6 },
-      ]}
+      accessibilityRole="button"
+      style={[s.btn, variant === 'ghost' && s.btnGhost, disabled && { opacity: 0.55 }]}
     >
       <Text style={[s.btnText, variant === 'ghost' && { color: colors.accentInk }]}>{title}</Text>
-    </Pressable>
+    </ScalePressable>
   );
 }
 
@@ -147,27 +182,35 @@ function AuthScreen({ onLogin }: { onLogin: (token: string, user: any) => void }
       style={s.authWrap}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={s.logo}>Faven</Text>
-      <Text style={s.tagline}>Every post is proof you were there.</Text>
+      <FadeInUp style={{ alignItems: 'center', gap: spacing.sm }}>
+        <View style={s.stampLabel}>
+          <Text style={s.stampLabelText}>FOOD HAVEN</Text>
+        </View>
+        <Text style={s.logo}>Faven</Text>
+        <Text style={s.tagline}>
+          Every post is <Text style={{ fontStyle: 'italic', color: colors.accent }}>proof</Text> you were
+          there.
+        </Text>
+      </FadeInUp>
       {stage === 'phone' ? (
-        <>
+        <FadeInUp key="phone" delay={120} style={{ gap: spacing.md }}>
           <TextInput
-            style={s.input}
+            style={s.inputDark}
             placeholder="10-digit phone"
-            placeholderTextColor={colors.inkSoft}
+            placeholderTextColor={colors.onDarkSoft}
             keyboardType="phone-pad"
             value={phone}
             onChangeText={setPhone}
             maxLength={10}
           />
           <Button title={busy ? 'Sending…' : 'Send OTP'} onPress={requestOtp} disabled={busy || phone.length < 10} />
-        </>
+        </FadeInUp>
       ) : (
-        <>
+        <FadeInUp key="otp" style={{ gap: spacing.md }}>
           <TextInput
-            style={s.input}
+            style={s.inputDark}
             placeholder="OTP (dev: 123456)"
-            placeholderTextColor={colors.inkSoft}
+            placeholderTextColor={colors.onDarkSoft}
             keyboardType="number-pad"
             value={code}
             onChangeText={setCode}
@@ -175,9 +218,10 @@ function AuthScreen({ onLogin }: { onLogin: (token: string, user: any) => void }
           />
           <Button title={busy ? 'Verifying…' : 'Verify & sign in'} onPress={verify} disabled={busy || code.length < 6} />
           <Button title="Change phone" variant="ghost" onPress={() => setStage('phone')} />
-        </>
+        </FadeInUp>
       )}
       {error ? <Text style={s.error}>{error}</Text> : null}
+      <Text style={s.proofline}>NO BOTS · NO PAID HYPE · GEO-VERIFIED</Text>
     </KeyboardAvoidingView>
   );
 }
@@ -219,7 +263,11 @@ function FeedScreen() {
       data={reviews}
       keyExtractor={(r) => String(r.id)}
       contentContainerStyle={{ padding: spacing.md, gap: spacing.md }}
-      renderItem={({ item }) => <ReviewCard review={item} />}
+      renderItem={({ item, index }) => (
+        <FadeInUp delay={Math.min(index, 6) * 60}>
+          <ReviewCard review={item} />
+        </FadeInUp>
+      )}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -272,11 +320,13 @@ function SearchScreen() {
     return (
       <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.md }}>
         <Button title="← Back to search" variant="ghost" onPress={() => setSelected(null)} />
-        <Text style={s.h1}>{selected.name}</Text>
-        <Text style={s.cardMeta}>
-          {selected.cuisine} · {selected.area ? `${selected.area}, ` : ''}
-          {selected.city}
-        </Text>
+        <FadeInUp style={{ gap: spacing.xs }}>
+          <Text style={s.h1Display}>{selected.name}</Text>
+          <Text style={s.cardMeta}>
+            {selected.cuisine} · {selected.area ? `${selected.area}, ` : ''}
+            {selected.city}
+          </Text>
+        </FadeInUp>
         {detailError ? (
           <ErrorState message={detailError} onRetry={() => setSelected({ ...selected })} />
         ) : detail ? (
@@ -305,14 +355,16 @@ function SearchScreen() {
         data={results}
         keyExtractor={(r) => String(r.id)}
         contentContainerStyle={{ gap: spacing.sm }}
-        renderItem={({ item }) => (
-          <Pressable style={s.card} onPress={() => setSelected(item)}>
-            <Text style={s.cardTitle}>{item.name}</Text>
-            <Text style={s.cardMeta}>
-              {item.cuisine} · {item.area ? `${item.area}, ` : ''}
-              {item.city}
-            </Text>
-          </Pressable>
+        renderItem={({ item, index }) => (
+          <FadeInUp delay={Math.min(index, 8) * 40} distance={10}>
+            <ScalePressable style={s.card} onPress={() => setSelected(item)}>
+              <Text style={s.cardTitle}>{item.name}</Text>
+              <Text style={s.cardMeta}>
+                {item.cuisine} · {item.area ? `${item.area}, ` : ''}
+                {item.city}
+              </Text>
+            </ScalePressable>
+          </FadeInUp>
         )}
         ListEmptyComponent={
           error ? (
@@ -407,7 +459,9 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.md }}>
-      <Text style={s.h1}>New review</Text>
+      <FadeInUp>
+        <Text style={s.h1Display}>New review</Text>
+      </FadeInUp>
 
       {!restaurant ? (
         <>
@@ -418,13 +472,15 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
             value={q}
             onChangeText={setQ}
           />
-          {results.map((r) => (
-            <Pressable key={r.id} style={s.card} onPress={() => setRestaurant(r)}>
-              <Text style={s.cardTitle}>{r.name}</Text>
-              <Text style={s.cardMeta}>
-                {r.cuisine} · {r.city}
-              </Text>
-            </Pressable>
+          {results.map((r, i) => (
+            <FadeInUp key={r.id} delay={Math.min(i, 6) * 40} distance={10}>
+              <ScalePressable style={s.card} onPress={() => setRestaurant(r)}>
+                <Text style={s.cardTitle}>{r.name}</Text>
+                <Text style={s.cardMeta}>
+                  {r.cuisine} · {r.city}
+                </Text>
+              </ScalePressable>
+            </FadeInUp>
           ))}
         </>
       ) : (
@@ -439,9 +495,7 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
 
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
             {[1, 2, 3, 4, 5].map((n) => (
-              <Pressable key={n} onPress={() => setRating(n)}>
-                <Text style={{ fontSize: 32, color: n <= rating ? colors.accent2 : colors.inkSoft }}>★</Text>
-              </Pressable>
+              <RatingStar key={n} n={n} rating={rating} onPress={() => setRating(n)} />
             ))}
           </View>
 
@@ -487,8 +541,8 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
 
       <Modal transparent visible={!!rewards} animationType="fade" onRequestClose={() => setRewards(null)}>
         <View style={s.modalBackdrop}>
-          <View style={s.modalCard}>
-            <Text style={s.h1}>🎉 Posted!</Text>
+          <PopIn style={s.modalCard}>
+            <Text style={s.h1Display}>🎉 Posted!</Text>
             {verification ? (
               <View style={{ alignItems: 'center', gap: 4 }}>
                 <TierBadge tier={verification.tier} />
@@ -511,7 +565,7 @@ function PostScreen({ onPosted }: { onPosted: () => void }) {
                 onPosted();
               }}
             />
-          </View>
+          </PopIn>
         </View>
       </Modal>
     </ScrollView>
@@ -579,19 +633,20 @@ function LeaderboardScreen({ user }: { user: any }) {
         />
       }
       ListHeaderComponent={
-        <View style={{ gap: spacing.xs, marginBottom: spacing.sm }}>
-          <Text style={s.h1}>Top foodies · {user?.city || 'Bangalore'}</Text>
+        <FadeInUp style={{ gap: spacing.xs, marginBottom: spacing.sm }}>
+          <Text style={s.h1Display}>Top foodies · {user?.city || 'Bangalore'}</Text>
           {meta.month ? (
-            <Text style={s.cardMeta}>
-              {meta.month} season · resets in {meta.resets_in_days} day
-              {meta.resets_in_days === 1 ? '' : 's'}
+            <Text style={s.monoMeta}>
+              {meta.month} SEASON · RESETS IN {meta.resets_in_days} DAY
+              {meta.resets_in_days === 1 ? '' : 'S'}
             </Text>
           ) : null}
-        </View>
+        </FadeInUp>
       }
-      renderItem={({ item }) => {
+      renderItem={({ item, index }) => {
         const isMe = item.id === user?.id;
         return (
+          <FadeInUp delay={Math.min(index, 8) * 45} distance={10}>
           <View
             style={[
               s.card,
@@ -612,6 +667,7 @@ function LeaderboardScreen({ user }: { user: any }) {
               </Text>
             </View>
           </View>
+          </FadeInUp>
         );
       }}
       ListEmptyComponent={<Empty text="No rankings yet this month." />}
@@ -653,7 +709,9 @@ function ProfileScreen({
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.md }}>
-      <Text style={s.h1}>Profile</Text>
+      <FadeInUp>
+        <Text style={s.h1Display}>Profile</Text>
+      </FadeInUp>
       <View style={{ flexDirection: 'row', gap: spacing.md }}>
         <StatBox label="FAV Coins" value={user?.coins ?? 0} />
         <StatBox label="Credibility" value={user?.credibility_score ?? 0} />
@@ -743,17 +801,19 @@ function Loading() {
   );
 }
 
-// Card-shaped loading skeleton (static shimmer-free placeholder — respects reduced motion)
+// Card-shaped loading skeleton with a gentle pulse (auto-disabled with reduce motion)
 function SkeletonCards({ count = 3, photo = false }: { count?: number; photo?: boolean }) {
   return (
     <View style={{ padding: spacing.md, gap: spacing.md }}>
       {Array.from({ length: count }).map((_, i) => (
-        <View key={i} style={s.card} accessibilityLabel="Loading…">
-          <View style={[s.skelLine, { width: '55%' }]} />
-          <View style={[s.skelLine, { width: '35%' }]} />
-          {photo ? <View style={[s.cardPhoto, { backgroundColor: colors.accentTint }]} /> : null}
-          <View style={[s.skelLine, { width: '85%' }]} />
-        </View>
+        <Pulse key={i} style={s.card}>
+          <View accessibilityLabel="Loading…">
+            <View style={[s.skelLine, { width: '55%' }]} />
+            <View style={[s.skelLine, { width: '35%' }]} />
+            {photo ? <View style={[s.cardPhoto, { backgroundColor: colors.accentTint }]} /> : null}
+            <View style={[s.skelLine, { width: '85%' }]} />
+          </View>
+        </Pulse>
       ))}
     </View>
   );
@@ -837,8 +897,8 @@ export default function App() {
 
   if (!user) {
     return (
-      <SafeAreaView style={s.root}>
-        <StatusBar style="dark" />
+      <SafeAreaView style={[s.root, { backgroundColor: colors.espresso }]}>
+        <StatusBar style="light" />
         <AuthScreen onLogin={onLogin} />
       </SafeAreaView>
     );
@@ -846,42 +906,51 @@ export default function App() {
 
   return (
     <SafeAreaView style={s.root}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <View style={s.header}>
         <Text style={s.headerLogo}>Faven</Text>
-        <Text style={s.headerCoins}>🪙 {user.coins ?? 0} FAV</Text>
+        <View style={s.coinPill}>
+          <Text style={s.coinPillText}>🪙 {user.coins ?? 0} FAV</Text>
+        </View>
       </View>
       <View style={{ flex: 1 }}>
-        {tab === 'feed' && <FeedScreen key={feedKey} />}
-        {tab === 'search' && <SearchScreen />}
-        {tab === 'post' && (
-          <PostScreen
-            onPosted={() => {
-              refreshUser();
-              setFeedKey((k) => k + 1);
-              setTab('feed');
-            }}
-          />
-        )}
-        {tab === 'leaderboard' && <LeaderboardScreen user={user} />}
-        {tab === 'profile' && <ProfileScreen user={user} onUserUpdated={setUser} onLogout={onLogout} />}
+        <FadeInUp key={tab} distance={8} style={{ flex: 1 }}>
+          {tab === 'feed' && <FeedScreen key={feedKey} />}
+          {tab === 'search' && <SearchScreen />}
+          {tab === 'post' && (
+            <PostScreen
+              onPosted={() => {
+                refreshUser();
+                setFeedKey((k) => k + 1);
+                setTab('feed');
+              }}
+            />
+          )}
+          {tab === 'leaderboard' && <LeaderboardScreen user={user} />}
+          {tab === 'profile' && <ProfileScreen user={user} onUserUpdated={setUser} onLogout={onLogout} />}
+        </FadeInUp>
       </View>
       <View style={s.tabBar} accessibilityRole="tablist">
-        {TABS.map((t) => (
-          <Pressable
-            key={t.key}
-            style={s.tabItem}
-            onPress={() => setTab(t.key)}
-            accessibilityRole="tab"
-            accessibilityLabel={t.label}
-            accessibilityState={{ selected: tab === t.key }}
-          >
-            <Text style={{ fontSize: 18 }}>{t.icon}</Text>
-            <Text style={[s.tabLabel, tab === t.key && { color: colors.accent, fontWeight: '700' }]}>
-              {t.label}
-            </Text>
-          </Pressable>
-        ))}
+        {TABS.map((t) => {
+          const active = tab === t.key;
+          return (
+            <ScalePressable
+              key={t.key}
+              style={s.tabItem}
+              scaleTo={0.9}
+              onPress={() => setTab(t.key)}
+              accessibilityRole="tab"
+              accessibilityLabel={t.label}
+              accessibilityState={{ selected: active }}
+            >
+              <View style={[s.tabDot, active && s.tabDotActive]} />
+              <Text style={{ fontSize: 18, opacity: active ? 1 : 0.6 }}>{t.icon}</Text>
+              <Text style={[s.tabLabel, active && { color: colors.accent2, fontWeight: '700' }]}>
+                {t.label}
+              </Text>
+            </ScalePressable>
+          );
+        })}
       </View>
     </SafeAreaView>
   );
@@ -896,35 +965,95 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.paper2,
+    paddingVertical: spacing.sm + 2,
+    backgroundColor: colors.espresso,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accentTint,
+    borderBottomColor: colors.lineDark,
   },
-  headerLogo: { fontSize: 22, fontWeight: '800', color: colors.accentInk },
+  headerLogo: { fontSize: 24, fontWeight: '800', color: colors.paper, letterSpacing: -0.6 },
   headerCoins: { fontSize: 16, color: colors.ink, fontWeight: '600' },
-  authWrap: { flex: 1, justifyContent: 'center', padding: spacing.xl, gap: spacing.md },
-  logo: { ...typeScale.display, color: colors.accentInk, textAlign: 'center' },
-  tagline: { color: colors.inkSoft, textAlign: 'center', marginBottom: spacing.lg },
+  coinPill: {
+    borderWidth: 1,
+    borderColor: colors.lineDark,
+    backgroundColor: 'rgba(245,241,232,0.08)',
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+  },
+  coinPillText: { fontFamily: fonts.mono, fontSize: 12.5, fontWeight: '700', color: colors.accent2 },
+  // Auth — espresso hero band like the landing hero
+  authWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.xl,
+    gap: spacing.md,
+    backgroundColor: colors.espresso,
+  },
+  logo: {
+    fontFamily: fonts.display,
+    fontSize: 56,
+    fontWeight: '600',
+    color: colors.paper,
+    letterSpacing: -1.5,
+    textAlign: 'center',
+  },
+  tagline: { color: colors.onDark, textAlign: 'center', fontSize: 17, marginBottom: spacing.lg },
+  stampLabel: {
+    borderWidth: 1.5,
+    borderColor: colors.accent2,
+    borderRadius: 5,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+  },
+  stampLabelText: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 2.5,
+    color: colors.accent2,
+  },
+  proofline: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    letterSpacing: 1.5,
+    color: colors.onDarkSoft,
+    textAlign: 'center',
+    marginTop: spacing.lg,
+  },
   input: {
     backgroundColor: colors.paper2,
     borderWidth: 1,
-    borderColor: colors.accentTint,
+    borderColor: colors.linePaper,
     borderRadius: radius.md,
     padding: spacing.md,
     fontSize: 16,
     color: colors.ink,
   },
+  // Input variant for the dark auth screen
+  inputDark: {
+    backgroundColor: 'rgba(245,241,232,0.06)',
+    borderWidth: 1,
+    borderColor: colors.lineDark,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    fontSize: 16,
+    color: colors.paper,
+  },
   btn: {
     // accentInk (6.0:1 with white text) instead of accent (3.76:1) — WCAG AA
     backgroundColor: colors.accentInk,
-    borderRadius: radius.pill,
+    borderRadius: radius.sm,
     paddingVertical: spacing.md,
     alignItems: 'center',
+    shadowColor: colors.accent,
+    shadowOpacity: 0.32,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
-  btnGhost: { backgroundColor: 'transparent' },
+  btnGhost: { backgroundColor: 'transparent', shadowOpacity: 0, elevation: 0 },
   btnText: { color: '#FFFFFF', fontWeight: '700', fontSize: typeScale.body.fontSize },
-  error: { color: colors.accentInk, textAlign: 'center' },
+  error: { color: colors.accent, textAlign: 'center' },
   skelLine: {
     height: 14,
     borderRadius: radius.sm ?? 6,
@@ -932,37 +1061,84 @@ const s = StyleSheet.create({
     marginVertical: 2,
   },
   h1: { ...typeScale.h1, color: colors.ink },
+  // Serif display heading — the landing page's Fraunces voice
+  h1Display: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    fontWeight: '600',
+    color: colors.ink,
+    letterSpacing: -0.5,
+  },
+  monoMeta: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    letterSpacing: 1.2,
+    color: colors.inkSoft,
+  },
   card: {
     backgroundColor: colors.paper2,
     borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.linePaper,
     padding: spacing.md,
     gap: spacing.xs,
     shadowColor: colors.espresso,
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
+  cardRule: {
+    height: 1,
+    backgroundColor: colors.linePaper,
+    marginVertical: spacing.xs,
+  },
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: { fontFamily: fonts.display, fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
   cardTitle: { fontSize: typeScale.body.fontSize, fontWeight: '700', color: colors.ink },
   cardMeta: { ...typeScale.meta, color: colors.inkSoft },
   cardBody: { fontSize: 14, color: colors.ink, lineHeight: 20 },
   cardPhoto: { width: '100%', height: 200, borderRadius: radius.sm, marginVertical: spacing.xs },
   badge: {
     alignSelf: 'flex-start',
-    borderRadius: radius.pill,
+    borderRadius: 5,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
   },
-  badgeText: { color: colors.paper2, fontSize: typeScale.badge.fontSize, fontWeight: typeScale.badge.fontWeight },
+  badgeStamp: {
+    alignSelf: 'flex-start',
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: colors.accentInk,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  badgeText: {
+    color: colors.paper2,
+    fontFamily: fonts.mono,
+    fontSize: typeScale.badge.fontSize,
+    fontWeight: typeScale.badge.fontWeight,
+    letterSpacing: 1.2,
+  },
+  // Espresso tab bar — dark band anchoring the app like the landing footer
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.paper2,
+    backgroundColor: colors.espresso,
     borderTopWidth: 1,
-    borderTopColor: colors.accentTint,
+    borderTopColor: colors.lineDark,
     paddingBottom: Platform.OS === 'ios' ? spacing.sm : 0,
   },
-  tabItem: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm },
-  tabLabel: { fontSize: 11, color: colors.inkSoft },
+  tabItem: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm, gap: 2 },
+  tabDot: { width: 18, height: 2.5, borderRadius: 2, backgroundColor: 'transparent' },
+  tabDotActive: { backgroundColor: colors.accent },
+  tabLabel: { fontSize: 11, color: colors.onDarkSoft },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(27,21,28,0.55)',
@@ -975,5 +1151,7 @@ const s = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.linePaper,
   },
 });

@@ -13,7 +13,6 @@ import {
   Platform,
   Pressable,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -21,6 +20,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, BASE_URL, setToken } from './src/api';
 import { colors, fonts, radius, spacing, tierColors, tierLabels, tierTextColors, typeScale } from './src/theme';
 import { FadeInUp, PopIn, Pulse, ScalePressable, useBounce } from './src/motion';
@@ -844,6 +844,34 @@ const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: 'profile', label: 'Profile', icon: '👤' },
 ];
 
+function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={[s.tabBar, { paddingBottom: Math.max(insets.bottom, spacing.xs) }]} accessibilityRole="tablist">
+      {TABS.map((t) => {
+        const active = tab === t.key;
+        return (
+          <ScalePressable
+            key={t.key}
+            style={s.tabItem}
+            scaleTo={0.9}
+            onPress={() => setTab(t.key)}
+            accessibilityRole="tab"
+            accessibilityLabel={t.label}
+            accessibilityState={{ selected: active }}
+          >
+            <View style={[s.tabDot, active && s.tabDotActive]} />
+            <Text style={{ fontSize: 18, opacity: active ? 1 : 0.6 }}>{t.icon}</Text>
+            <Text style={[s.tabLabel, active && { color: colors.accent2, fontWeight: '700' }]}>
+              {t.label}
+            </Text>
+          </ScalePressable>
+        );
+      })}
+    </View>
+  );
+}
+
 // ---------- root ----------
 
 export default function App() {
@@ -889,23 +917,28 @@ export default function App() {
 
   if (booting) {
     return (
-      <SafeAreaView style={s.root}>
-        <Loading />
-      </SafeAreaView>
+      <SafeAreaProvider>
+        <SafeAreaView style={s.root}>
+          <Loading />
+        </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 
   if (!user) {
     return (
-      <SafeAreaView style={[s.root, { backgroundColor: colors.espresso }]}>
-        <StatusBar style="light" />
-        <AuthScreen onLogin={onLogin} />
-      </SafeAreaView>
+      <SafeAreaProvider>
+        <SafeAreaView style={[s.root, { backgroundColor: colors.espresso }]}>
+          <StatusBar style="light" />
+          <AuthScreen onLogin={onLogin} />
+        </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <SafeAreaView style={s.root}>
+    <SafeAreaProvider>
+    <SafeAreaView style={s.root} edges={['top', 'left', 'right']}>
       <StatusBar style="light" />
       <View style={s.header}>
         <Text style={s.headerLogo}>Faven</Text>
@@ -930,29 +963,9 @@ export default function App() {
           {tab === 'profile' && <ProfileScreen user={user} onUserUpdated={setUser} onLogout={onLogout} />}
         </FadeInUp>
       </View>
-      <View style={s.tabBar} accessibilityRole="tablist">
-        {TABS.map((t) => {
-          const active = tab === t.key;
-          return (
-            <ScalePressable
-              key={t.key}
-              style={s.tabItem}
-              scaleTo={0.9}
-              onPress={() => setTab(t.key)}
-              accessibilityRole="tab"
-              accessibilityLabel={t.label}
-              accessibilityState={{ selected: active }}
-            >
-              <View style={[s.tabDot, active && s.tabDotActive]} />
-              <Text style={{ fontSize: 18, opacity: active ? 1 : 0.6 }}>{t.icon}</Text>
-              <Text style={[s.tabLabel, active && { color: colors.accent2, fontWeight: '700' }]}>
-                {t.label}
-              </Text>
-            </ScalePressable>
-          );
-        })}
-      </View>
+      <TabBar tab={tab} setTab={setTab} />
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -1133,7 +1146,6 @@ const s = StyleSheet.create({
     backgroundColor: colors.espresso,
     borderTopWidth: 1,
     borderTopColor: colors.lineDark,
-    paddingBottom: Platform.OS === 'ios' ? spacing.sm : 0,
   },
   tabItem: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm, gap: 2 },
   tabDot: { width: 18, height: 2.5, borderRadius: 2, backgroundColor: 'transparent' },

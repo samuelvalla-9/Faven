@@ -20,7 +20,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { api, BASE_URL, setToken } from './src/api';
 import { colors, fonts, radius, spacing, tierColors, tierLabels, tierTextColors, typeScale } from './src/theme';
 import { FadeInUp, PopIn, Pulse, ScalePressable, useBounce } from './src/motion';
@@ -845,9 +845,8 @@ const TABS: { key: Tab; label: string; icon: string }[] = [
 ];
 
 function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
-  const insets = useSafeAreaInsets();
   return (
-    <View style={[s.tabBar, { paddingBottom: Math.max(insets.bottom, spacing.xs) }]} accessibilityRole="tablist">
+    <View style={s.tabBar} accessibilityRole="tablist">
       {TABS.map((t) => {
         const active = tab === t.key;
         return (
@@ -918,7 +917,7 @@ export default function App() {
 
   if (booting) {
     return (
-      <SafeAreaProvider>
+      <SafeAreaProvider style={{ flex: 1 }}>
         <SafeAreaView style={s.root}>
           <Loading />
         </SafeAreaView>
@@ -928,7 +927,7 @@ export default function App() {
 
   if (!user) {
     return (
-      <SafeAreaProvider>
+      <SafeAreaProvider style={{ flex: 1 }}>
         <SafeAreaView style={[s.root, { backgroundColor: colors.espresso }]}>
           <StatusBar style="light" />
           <AuthScreen onLogin={onLogin} />
@@ -938,34 +937,34 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-    <SafeAreaView style={s.root} edges={['top', 'left', 'right']}>
-      <StatusBar style="light" />
-      <View style={s.header}>
-        <Text style={s.headerLogo}>Faven</Text>
-        <View style={s.coinPill}>
-          <Text style={s.coinPillText}>🪙 {user.coins ?? 0} FAV</Text>
+    <SafeAreaProvider style={{ flex: 1 }}>
+      <SafeAreaView style={[s.root, { backgroundColor: colors.espresso }]}>
+        <StatusBar style="light" />
+        <View style={s.header}>
+          <Text style={s.headerLogo}>Faven</Text>
+          <View style={s.coinPill}>
+            <Text style={s.coinPillText}>🪙 {user.coins ?? 0} FAV</Text>
+          </View>
         </View>
-      </View>
-      <View style={{ flex: 1 }}>
-        <FadeInUp key={tab} distance={8} style={{ flex: 1 }}>
-          {tab === 'feed' && <FeedScreen key={feedKey} />}
-          {tab === 'search' && <SearchScreen />}
-          {tab === 'post' && (
-            <PostScreen
-              onPosted={() => {
-                refreshUser();
-                setFeedKey((k) => k + 1);
-                setTab('feed');
-              }}
-            />
-          )}
-          {tab === 'leaderboard' && <LeaderboardScreen user={user} />}
-          {tab === 'profile' && <ProfileScreen user={user} onUserUpdated={setUser} onLogout={onLogout} />}
-        </FadeInUp>
-      </View>
-      <TabBar tab={tab} setTab={setTab} />
-    </SafeAreaView>
+        <View style={{ flex: 1, backgroundColor: colors.paper }}>
+          <FadeInUp key={tab} distance={8} style={{ flex: 1 }}>
+            {tab === 'feed' && <FeedScreen key={feedKey} />}
+            {tab === 'search' && <SearchScreen />}
+            {tab === 'post' && (
+              <PostScreen
+                onPosted={() => {
+                  refreshUser();
+                  setFeedKey((k) => k + 1);
+                  setTab('feed');
+                }}
+              />
+            )}
+            {tab === 'leaderboard' && <LeaderboardScreen user={user} />}
+            {tab === 'profile' && <ProfileScreen user={user} onUserUpdated={setUser} onLogout={onLogout} />}
+          </FadeInUp>
+        </View>
+        <TabBar tab={tab} setTab={setTab} />
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 }

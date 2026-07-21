@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 21 July 2026 (Post-Sprint-4: landing-page design language + motion pass on the app)
+> **Last updated:** 22 July 2026 (Fix SafeAreaView & bottom tab bar layout for Expo Go mobile / react-native-safe-area-context)
 
 ---
 

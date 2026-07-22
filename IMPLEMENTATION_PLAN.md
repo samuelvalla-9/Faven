@@ -54,8 +54,8 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 
 **Environment notes / gotchas learned:**
 - dotenv must load `api/.env` by absolute path (fixed in server.js, pool.js, init.js).
-- Corporate machine: no admin → inbound firewall rules can't be added; ngrok/localtunnel blocked. **Web mode is the primary dev loop.** Expo Go on phone may work over LAN (Metro on `192.168.0.185`) if firewall allows; USB + `adb reverse` is the fallback for Android.
-- Start scripts: `app/start-web.ps1`, `app/start-tunnel.ps1` (tunnel blocked on corp network).
+- Corporate machine: no admin → inbound firewall rules can't be added; external tunnels are blocked. **Web mode is the primary dev loop.** Expo Go on phone may work over LAN (Metro on `192.168.0.185`) if firewall allows; USB + `adb reverse` is the fallback for Android.
+- Start scripts: `app/start-web.ps1`.
 - Run API detached: `Start-Process -WindowStyle Hidden node -ArgumentList '<abs path>\api\src\server.js'`
 
 ---

@@ -5,7 +5,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 function resolveBaseUrl(): string {
-  // Explicit override (used for tunnel mode): set in app/.env as EXPO_PUBLIC_API_URL
+  // Explicit override: set in app/.env as EXPO_PUBLIC_API_URL
   const override = process.env.EXPO_PUBLIC_API_URL;
   if (override) return override;
   // hostUri looks like "10.64.137.127:8081" when served by `expo start`

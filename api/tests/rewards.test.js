@@ -1,4 +1,4 @@
-const { computeStreak, milestoneForPostCount, VOUCHER_MILESTONES, STREAK_WEEKLY_BONUS_COINS } = require('../src/services/rewards');
+const { computeStreak, milestoneForPostCount, qualifiesForFirstPostCashback, VOUCHER_MILESTONES, STREAK_WEEKLY_BONUS_COINS } = require('../src/services/rewards');
 
 const TODAY = '2026-07-20';
 
@@ -83,5 +83,49 @@ describe('milestoneForPostCount (voucher milestones)', () => {
 
   test('milestone table is 5/10/20 ascending', () => {
     expect(VOUCHER_MILESTONES.map((m) => m.threshold)).toEqual([5, 10, 20]);
+  });
+});
+
+describe('qualifiesForFirstPostCashback', () => {
+  test('presence proof (EXIF) + one other signal → qualifies', () => {
+    expect(qualifiesForFirstPostCashback({
+      exif_verified: 1, upi_verified: 1, receipt_verified: 0, ai_authentic: 0, community_verified: 0
+    })).toBe(true);
+    expect(qualifiesForFirstPostCashback({
+      exif_verified: 1, upi_verified: 0, receipt_verified: 1, ai_authentic: 0, community_verified: 0
+    })).toBe(true);
+    expect(qualifiesForFirstPostCashback({
+      exif_verified: 1, upi_verified: 0, receipt_verified: 0, ai_authentic: 1, community_verified: 0
+    })).toBe(true);
+    expect(qualifiesForFirstPostCashback({
+      exif_verified: 1, upi_verified: 0, receipt_verified: 0, ai_authentic: 0, community_verified: 1
+    })).toBe(true);
+  });
+
+  test('presence proof alone does NOT qualify', () => {
+    expect(qualifiesForFirstPostCashback({
+      exif_verified: 1, upi_verified: 0, receipt_verified: 0, ai_authentic: 0, community_verified: 0
+    })).toBe(false);
+  });
+
+  test('two non-presence signals without EXIF does NOT qualify', () => {
+    expect(qualifiesForFirstPostCashback({
+      exif_verified: 0, upi_verified: 1, receipt_verified: 1, ai_authentic: 0, community_verified: 0
+    })).toBe(false);
+    expect(qualifiesForFirstPostCashback({
+      exif_verified: 0, upi_verified: 1, receipt_verified: 0, ai_authentic: 1, community_verified: 0
+    })).toBe(false);
+  });
+
+  test('multiple other signals with EXIF also qualifies', () => {
+    expect(qualifiesForFirstPostCashback({
+      exif_verified: 1, upi_verified: 1, receipt_verified: 1, ai_authentic: 1, community_verified: 1
+    })).toBe(true);
+  });
+
+  test('no signals → does NOT qualify', () => {
+    expect(qualifiesForFirstPostCashback({
+      exif_verified: 0, upi_verified: 0, receipt_verified: 0, ai_authentic: 0, community_verified: 0
+    })).toBe(false);
   });
 });

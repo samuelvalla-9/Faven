@@ -5,7 +5,7 @@ const multer = require('multer');
 const pool = require('../db/pool');
 const auth = require('../middleware/auth');
 const { computeTier, verifyExif, verifyUpi, verifyReceipt, verifyAiAuthenticity } = require('../services/verification');
-const { computeStreak, milestoneForPostCount } = require('../services/rewards');
+const { computeStreak, milestoneForPostCount, qualifiesForFirstPostCashback } = require('../services/rewards');
 const { recomputeCredibility } = require('../services/credibility');
 
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
@@ -81,11 +81,12 @@ router.post('/', auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'r
        signals.ai_authentic, signals.community_verified, tier, sponsored ? 1 : 0]
     );
 
-    // First-post ₹25 cashback (mock ledger) — product rule: only for a Fully
-    // Verified post (4–5 signals → tier 'full'). Live as of Sprint 2.
+    // First-post ₹25 cashback (mock ledger) — product rule: presence proof
+    // (EXIF location verified) + at least one other passing signal.
+    // Gate function is env-configurable (CASHBACK_MIN_OTHER_SIGNALS).
     const [[user]] = await pool.query(`SELECT * FROM users WHERE id=?`, [req.user.id]);
     const rewards = [];
-    if (!user.first_post_rewarded && tier === 'full') {
+    if (!user.first_post_rewarded && qualifiesForFirstPostCashback(signals)) {
       await pool.query(
         `INSERT INTO reward_ledger (user_id, type, amount_inr, note) VALUES (?, 'cashback_first_post', 25, 'First verified post cashback (dev mock)')`,
         [req.user.id]

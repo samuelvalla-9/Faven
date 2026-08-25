@@ -3,6 +3,32 @@
 
 const STREAK_WEEKLY_BONUS_COINS = Number(process.env.STREAK_WEEKLY_BONUS_COINS || 50);
 
+// First-post cashback gate: presence proof (EXIF location) + at least N other signals.
+// Env override: CASHBACK_MIN_OTHER_SIGNALS (default 1)
+const CASHBACK_MIN_OTHER_SIGNALS = Number(process.env.CASHBACK_MIN_OTHER_SIGNALS || 1);
+
+/**
+ * Determines if a post qualifies for the ₹25 first-post cashback.
+ * Requires presence proof (exif_verified) PLUS at least CASHBACK_MIN_OTHER_SIGNALS
+ * additional passing signals.
+ *
+ * @param {{ exif_verified: number, upi_verified: number, receipt_verified: number, ai_authentic: number, community_verified: number }} signals
+ * @returns {boolean}
+ */
+function qualifiesForFirstPostCashback(signals) {
+  // Presence proof is mandatory
+  if (!signals.exif_verified) return false;
+
+  // Count other passing signals (excluding exif)
+  const otherSignals =
+    (signals.upi_verified ? 1 : 0) +
+    (signals.receipt_verified ? 1 : 0) +
+    (signals.ai_authentic ? 1 : 0) +
+    (signals.community_verified ? 1 : 0);
+
+  return otherSignals >= CASHBACK_MIN_OTHER_SIGNALS;
+}
+
 /** Normalize a DATE-ish value (Date, 'YYYY-MM-DD' string, null) to 'YYYY-MM-DD' or null. */
 function toDateStr(d) {
   if (!d) return null;
@@ -67,4 +93,4 @@ function milestoneForPostCount(totalPosts) {
   return VOUCHER_MILESTONES.find((m) => m.threshold === n) || null;
 }
 
-module.exports = { computeStreak, milestoneForPostCount, VOUCHER_MILESTONES, STREAK_WEEKLY_BONUS_COINS };
+module.exports = { computeStreak, milestoneForPostCount, qualifiesForFirstPostCashback, VOUCHER_MILESTONES, STREAK_WEEKLY_BONUS_COINS, CASHBACK_MIN_OTHER_SIGNALS };

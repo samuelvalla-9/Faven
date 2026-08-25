@@ -23,6 +23,26 @@
 **Risk:** Current 12-digit format check is not a verification — an attacker can invent a UTR. An invented UTR paired with a real geotagged photo yields two signals and a Partially Verified badge at zero cost.
 **Fix:** Integrate RBI Account Aggregator or bank statement OCR to confirm UTR belongs to the claiming user and matches the restaurant VPA.
 
+### UTR uniqueness
+**Risk:** No dedupe exists — one UTR is reusable across posts and across users. Collides directly with bill-splitting scenarios and the community corroboration signal.
+**Fix:** Unique index on UTR column plus a per-user reuse check; consider hashing UTRs for privacy.
+
+### Photo replay
+**Risk:** The same geotagged photo can farm unlimited posts across restaurants and users.
+**Fix:** Compute a perceptual hash (pHash/dHash) for every upload; reject reuse across users and restaurants.
+
+### Timestamp window too wide
+**Risk:** 72-hour window means "walked past Monday, posted Thursday" passes verification.
+**Fix:** Tighten window to hours (e.g., 6–12h); treat low GPS accuracy as inconclusive rather than pass/fail; display warning when timestamp is stale.
+
+### File forensics
+**Risk:** Cheap detection of lazy EXIF spoofing without full attestation is missing.
+**Fix:** Check JPEG quantization tables and EXIF tag ordering against known camera profiles; flag missing MakerNotes, thumbnail/main mismatch, or editor `Software` tags.
+
+### Hive fail-open is invisible
+**Risk:** A provider timeout is indistinguishable from a pass, so the AI-detection signal is defeatable by making the provider unreachable.
+**Fix:** Persist `pass | fail | unavailable` rather than boolean; surface "couldn't verify" in UI; add a retry queue with exponential backoff.
+
 ---
 
 ## Security
@@ -42,6 +62,10 @@
 ### Admin 2FA
 **Risk:** Admin JWT is identical to user JWT with an `is_admin` flag. No additional factor for privileged actions.
 **Fix:** Require TOTP or WebAuthn for admin login and/or for destructive moderation actions.
+
+### Injection audit
+**Risk:** Confirm `/search` and `/restaurants?q=` are parameterized throughout; string-built `LIKE`/`MATCH` clauses are the classic SQL injection hole.
+**Fix:** Audit and parameterize all dynamic SQL; add `helmet` middleware, a CORS allowlist, and body size limits.
 
 ---
 
@@ -91,6 +115,14 @@
 **Risk:** Credibility score never decreases. A creator who verified 50 posts two years ago but now posts AI-generated spam retains high score.
 **Fix:** Implement time-decay factor; recent activity counts more than historical.
 
+### Moderation rewrites leaderboard history
+**Risk:** `prev_rank` is recomputed live — removing a review retroactively alters last month's standings.
+**Fix:** Snapshot monthly standings to a table; display historical ranks from snapshots rather than live recompute.
+
+### Streak day boundary
+**Risk:** Day boundary is unpinned, leaving a ~5.5-hour ambiguous window against UTC for Indian users.
+**Fix:** Pin streak day boundary explicitly to Asia/Kolkata (IST); document the cutoff time in-app.
+
 ---
 
 ## Compliance
@@ -106,6 +138,18 @@
 ### IT Act §79 intermediary status
 **Risk:** Hosting user-generated reviews without proper takedown process may forfeit safe-harbor.
 **Fix:** Publish grievance officer contact; implement 72 h content-review SLA on flagged posts; maintain records per CERT-In guidelines.
+
+### DPDP children's provisions
+**Risk:** The strategy doc explicitly targets students, pulling in under-18 rules under India's Digital Personal Data Protection Act 2023.
+**Fix:** Implement age gate; require verifiable parental consent for minors; no behavioural targeting at users under 18.
+
+### Payout KYC / AML
+**Risk:** Mass small transfers to unverified recipients will trigger payment provider review and potential account freezes.
+**Fix:** Collect recipient KYC (PAN, bank verification) before first payout; implement threshold monitoring; reconcile payouts before scaling.
+
+### NPCI / UPI branding rules
+**Risk:** Using UPI branding, logos, or terminology in a non-payment app may violate NPCI guidelines.
+**Fix:** Legal review of all UPI references in app copy and landing page; remove or rephrase "UPI verification" if required.
 
 ---
 

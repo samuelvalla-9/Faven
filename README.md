@@ -11,8 +11,11 @@ Faven fights fake reviews with a multi-signal verification engine: UPI payment p
 - 📝 **Verified reviews** — star rating, photo (EXIF preserved), UPI UTR, sponsored disclosure
 - ✅ **Verification tiers** — 4–5 signals → **Fully Verified**, 2–3 → **Partially Verified**, 0–1 → **Reviewed**
   - EXIF GPS cross-checked against the restaurant location (haversine, 200 m) + 72 h recency window
-  - AI-generated photo detection via Hive (env-gated; fails open)
-- 🎁 **Rewards** — ₹25 first-post cashback (fully verified), FAV Coins, daily streaks with weekly bonuses, voucher milestones at 5/10/20 posts
+  - AI-generated photo detection via Hive *(stub — provider integration pending; env-gated on `HIVE_API_KEY`, dev passes photos as authentic)*
+  - UPI UTR verification *(format validation only — 12-digit check; real provider integration via RBI Account Aggregator pending)*
+  - Receipt OCR *(stub — OCR not implemented)*
+  - Community corroboration *(not implemented — post-MVP)*
+- 🎁 **Rewards** — ₹25 first-post cashback *(mock ledger — real Razorpay Payouts pending)*, FAV Coins *(mock balance)*, daily streaks with weekly bonuses, voucher milestones at 5/10/20 posts *(data model only — redemption pending)*
 - 🏆 **Monthly leaderboard** — rank movement (▲/▼/NEW), season reset countdown, credibility score v1
 - 🛡️ **Moderation dashboard** — admin web UI to flag/remove/restore reviews (`GET /admin`)
 - 🎨 **Ember & Parchment design system** — WCAG AA audited, reduced-motion friendly
@@ -26,7 +29,7 @@ Faven fights fake reviews with a multi-signal verification engine: UPI payment p
 | Database | MySQL |
 | Auth | Phone OTP → JWT |
 | Photo verification | `exifr` (EXIF GPS/timestamp) + Hive AI detection |
-| Testing | Jest + Supertest (62 tests, ~94% coverage on verification core) |
+| Testing | Jest + Supertest (81 tests, ~94% coverage on verification core) |
 
 ## 📁 Repository layout
 
@@ -101,7 +104,7 @@ Scan the QR in Expo Go (`exp://<your-LAN-IP>:8081`). The API client auto-detects
 
 ```powershell
 cd api
-npm test              # 62 tests
+npm test              # 81 tests
 npm run test:coverage # HTML report in api/coverage/
 ```
 
@@ -109,13 +112,14 @@ npm run test:coverage # HTML report in api/coverage/
 
 | Endpoint | Description |
 |---|---|
-| `POST /auth/request-otp` · `POST /auth/verify-otp` | Phone OTP login → JWT |
+| `POST /auth/request-otp` · `POST /auth/verify-otp` | Phone OTP login → JWT *(SMS stub — dev OTP hardcoded)* |
 | `GET /auth/me` · `PATCH /auth/me` | Profile |
 | `GET /restaurants?q=` · `GET /restaurants/:id` | Search / detail with reviews |
 | `POST /reviews` (multipart) | Submit review → verification tier + rewards |
 | `GET /search?q=` | Keyword search across restaurants + review text |
 | `GET /leaderboard` | Monthly standings with rank movement |
-| `GET /rewards` | Cashback/coins ledger + totals |
+| `GET /rewards` | Cashback/coins ledger + totals *(mock ledger)* |
+| `GET /stats` | Aggregate dataset stats (total reviews, verification rates, tier breakdown) |
 | `GET /admin` + `/admin/reviews`, `/admin/users` | Moderation (admin JWT) |
 | `GET /health` | Health check |
 

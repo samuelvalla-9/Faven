@@ -1,5 +1,10 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+// Boot-time configuration validation — must run before anything else
+const { enforceBootGuards } = require('./config/boot');
+enforceBootGuards();
+
 const express = require('express');
 const cors = require('cors');
 

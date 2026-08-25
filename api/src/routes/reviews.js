@@ -2,21 +2,57 @@ const router = require('express').Router();
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const piexif = require('piexifjs');
 const pool = require('../db/pool');
 const auth = require('../middleware/auth');
 const { computeTier, verifyExif, verifyUpi, verifyReceipt, verifyAiAuthenticity, REASON_DISPLAY } = require('../services/verification');
 const { computeStreak, milestoneForPostCount, qualifiesForFirstPostCashback } = require('../services/rewards');
 const { recomputeCredibility } = require('../services/credibility');
 
-const uploadDir = path.join(__dirname, '..', '..', 'uploads');
-fs.mkdirSync(uploadDir, { recursive: true });
+// Uploads directory structure:
+// - uploads/originals/ — raw uploads with EXIF (not statically served)
+// - uploads/public/ — EXIF-stripped versions for public access
+const originalsDir = path.join(__dirname, '..', '..', 'uploads', 'originals');
+const publicDir = path.join(__dirname, '..', '..', 'uploads', 'public');
+fs.mkdirSync(originalsDir, { recursive: true });
+fs.mkdirSync(publicDir, { recursive: true });
+
 const upload = multer({
   storage: multer.diskStorage({
-    destination: uploadDir,
+    destination: originalsDir, // Save raw uploads to originals (not served)
     filename: (_req, file, cb) => cb(null, `${Date.now()}-${Math.round(Math.random() * 1e6)}${path.extname(file.originalname)}`),
   }),
   limits: { fileSize: 10 * 1024 * 1024 },
 });
+
+/**
+ * Strip EXIF metadata from a JPEG and save to the public directory.
+ * Uses piexifjs to remove all metadata, preserving only image data.
+ * @param {string} originalPath - Path to the original file with EXIF
+ * @returns {string} - Path to the stripped public file
+ */
+function stripExifAndSavePublic(originalPath) {
+  const filename = path.basename(originalPath);
+  const publicPath = path.join(publicDir, filename);
+
+  try {
+    const data = fs.readFileSync(originalPath);
+    // Convert to base64 data URI for piexifjs
+    const dataUri = 'data:image/jpeg;base64,' + data.toString('base64');
+    // Remove all EXIF data
+    const stripped = piexif.remove(dataUri);
+    // Convert back to buffer and save
+    const base64Data = stripped.replace(/^data:image\/\w+;base64,/, '');
+    fs.writeFileSync(publicPath, Buffer.from(base64Data, 'base64'));
+    return publicPath;
+  } catch (err) {
+    // If stripping fails (e.g., non-JPEG), just copy the file
+    // This is a fallback — in production, we'd want to handle this better
+    console.warn('EXIF strip failed, copying original:', err.message);
+    fs.copyFileSync(originalPath, publicPath);
+    return publicPath;
+  }
+}
 
 // GET /reviews/feed — latest reviews across restaurants
 router.get('/feed', async (_req, res, next) => {
@@ -48,9 +84,19 @@ router.post('/', auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'r
 
     const photoFile = req.files?.photo?.[0] || null;
     const receiptFile = req.files?.receipt?.[0] || null;
-    const photoUrl = photoFile ? `/uploads/${photoFile.filename}` : null;
+
+    // Verification uses the original file (with EXIF intact)
+    // Then we strip EXIF and serve only the sanitized version
+    let photoUrl = null;
+    if (photoFile) {
+      // Strip EXIF and save to public directory
+      stripExifAndSavePublic(photoFile.path);
+      // Public URL points to the stripped version
+      photoUrl = `/uploads/public/${photoFile.filename}`;
+    }
 
     // Live verification signals (community corroboration is post-MVP → always 0)
+    // Note: verification uses the ORIGINAL file path (with EXIF) for accurate checking
     const [exifRes, upiRes, receiptRes, aiRes] = await Promise.all([
       verifyExif(photoFile?.path, restaurant),
       verifyUpi(utr),

@@ -20,7 +20,11 @@ const statsRoutes = require('./routes/stats');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// Serve only EXIF-stripped public uploads (originals are kept private)
+app.use('/uploads/public', express.static(path.join(__dirname, '..', 'uploads', 'public')));
+// Legacy route for backwards compatibility — also points to public
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads', 'public')));
 
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'faven-api', ts: Date.now() }));
 

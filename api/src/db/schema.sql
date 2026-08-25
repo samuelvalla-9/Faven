@@ -90,3 +90,10 @@ CREATE TABLE IF NOT EXISTS voucher_milestones (
   UNIQUE KEY uq_user_threshold (user_id, threshold),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Waitlist for landing page signups (Sprint 5).
+CREATE TABLE IF NOT EXISTS waitlist (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

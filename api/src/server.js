@@ -16,6 +16,7 @@ const rewardRoutes = require('./routes/rewards');
 const searchRoutes = require('./routes/search');
 const adminRoutes = require('./routes/admin');
 const statsRoutes = require('./routes/stats');
+const waitlistRoutes = require('./routes/waitlist');
 
 const app = express();
 app.use(cors());
@@ -36,6 +37,7 @@ app.use('/rewards', rewardRoutes);
 app.use('/search', searchRoutes);
 app.use('/admin', adminRoutes);
 app.use('/stats', statsRoutes);
+app.use('/waitlist', waitlistRoutes);
 
 // central error handler
 app.use((err, _req, res, _next) => {

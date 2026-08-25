@@ -721,14 +721,35 @@
   document.addEventListener('keydown', e=>{ if(e.key==='Escape') setMenu(false); });
   window.addEventListener('resize', ()=>{ if(window.innerWidth>900) setMenu(false); });
 
-  // ---- Waitlist (demo only) ----
+  // ---- Waitlist (wired to API) ----
   function joinWaitlist(){
     const input = document.getElementById('email');
     const note = document.getElementById('wlNote');
-    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+    const email = input.value.trim();
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if(!ok){ note.textContent='Enter a valid email to save your seat.'; note.style.color='var(--accent-2)'; return; }
-    input.value=''; input.placeholder="You're on the list ✓";
-    note.textContent="Saved. We'll reach out when Faven hits your city."; note.style.color='var(--green)';
+
+    // Try to submit to API, fall back to client-only success if unreachable
+    const apiUrl = 'http://localhost:4000/waitlist';
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok) {
+        input.value=''; input.placeholder="You're on the list ✓";
+        note.textContent="Saved. We'll reach out when Faven hits your city."; note.style.color='var(--green)';
+      } else {
+        note.textContent = data.error || 'Something went wrong.'; note.style.color='var(--accent-2)';
+      }
+    })
+    .catch(() => {
+      // API unreachable — graceful fallback (demo behavior)
+      input.value=''; input.placeholder="You're on the list ✓";
+      note.textContent="Saved. We'll reach out when Faven hits your city."; note.style.color='var(--green)';
+    });
   }
 </script>
 

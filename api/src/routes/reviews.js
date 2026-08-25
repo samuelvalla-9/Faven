@@ -4,7 +4,7 @@ const fs = require('fs');
 const multer = require('multer');
 const pool = require('../db/pool');
 const auth = require('../middleware/auth');
-const { computeTier, verifyExif, verifyUpi, verifyReceipt, verifyAiAuthenticity } = require('../services/verification');
+const { computeTier, verifyExif, verifyUpi, verifyReceipt, verifyAiAuthenticity, REASON_DISPLAY } = require('../services/verification');
 const { computeStreak, milestoneForPostCount, qualifiesForFirstPostCashback } = require('../services/rewards');
 const { recomputeCredibility } = require('../services/credibility');
 
@@ -65,10 +65,18 @@ router.post('/', auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'r
       community_verified: 0,
     };
     const tier = computeTier(signals);
+
+    // Build human-readable reason strings for display
+    const formatReasons = (res) => (res.reasons || []).map((r) => REASON_DISPLAY[r] || r);
     const verification = {
       tier,
       signals,
-      details: { exif: exifRes, upi: upiRes, receipt: receiptRes, ai: aiRes },
+      details: {
+        exif: { ...exifRes, displayReasons: formatReasons(exifRes) },
+        upi: { ...upiRes, displayReasons: formatReasons(upiRes) },
+        receipt: { ...receiptRes, displayReasons: formatReasons(receiptRes) },
+        ai: { ...aiRes, displayReasons: formatReasons(aiRes) },
+      },
     };
 
     const [r] = await pool.query(

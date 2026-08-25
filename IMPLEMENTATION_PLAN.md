@@ -174,6 +174,14 @@ node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG 
 
 # Login flow (dev): any 10-digit phone → OTP 123456
 
+# Demo venue seeding (for on-device verification demo)
+# Inserts venue restaurants at given coords + one far restaurant for rejection demo
+node api/scripts/seed-demo-venue.js <lat> <lng> [city]
+# Example for Mumbai office demo:
+node api/scripts/seed-demo-venue.js 19.0760 72.8777 Mumbai
+# Then: photo at venue → "Demo Venue - Main" = PASS
+#       same photo → "Demo - Far Location" = FAIL with reason "Photo taken too far from restaurant location"
+
 # EAS Build (Android APK for device testing)
 cd app
 eas login                            # authenticate with Expo account
@@ -194,5 +202,5 @@ cd app; npx expo start               # scan QR with Expo Go
 **Key files:**
 - API entry: `api/src/server.js` · routes: `api/src/routes/` (incl. `search.js`) · verification: `api/src/services/verification.js` · rewards/streaks: `api/src/services/rewards.js` · credibility: `api/src/services/credibility.js`
 - Tests: `api/tests/` (Jest; helper `tests/helpers/geotaggedJpeg.js` generates EXIF fixtures) · coverage config in `api/package.json`
-- Schema/seed: `api/src/db/schema.sql`, `seed.js` · env: `api/.env` (never commit)
+- Schema/seed: `api/src/db/schema.sql`, `seed.js`, `api/scripts/seed-demo-venue.js` (demo venue seeding) · env: `api/.env` (never commit)
 - App entry: `app/App.tsx` · theme: `app/src/theme.ts` · API client: `app/src/api.ts` · EAS config: `app/eas.json`

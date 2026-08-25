@@ -182,4 +182,29 @@ module.exports = {
   MAX_DISTANCE_METERS,
   MAX_PHOTO_AGE_HOURS,
   AI_GEN_THRESHOLD,
+  // Human-readable reason strings for display in app/modal
+  REASON_DISPLAY: {
+    // EXIF reasons
+    no_gps: 'Photo has no GPS data',
+    no_photo: 'No photo uploaded',
+    too_far: 'Photo taken too far from restaurant location',
+    restaurant_missing_coords: 'Restaurant location not available',
+    timestamp_in_future: 'Photo timestamp is in the future',
+    photo_too_old: 'Photo was taken too long ago',
+    no_timestamp: 'Photo has no timestamp (GPS verified)',
+    // UPI reasons
+    no_utr: 'No UPI reference provided',
+    invalid_format: 'Invalid UPI reference format',
+    dev_format_check: 'UPI format verified (demo mode)',
+    provider_not_implemented: 'UPI provider not configured',
+    // Receipt reasons
+    no_receipt: 'No receipt uploaded',
+    ocr_not_implemented: 'Receipt OCR not available',
+    // AI reasons
+    ai_generated_detected: 'Photo appears to be AI-generated',
+    hive_check_passed: 'Photo authenticity verified',
+    unexpected_response: 'Authenticity check unavailable',
+    dev_stub: 'Authenticity check (demo mode)',
+    provider_error_fail_open: 'Authenticity provider unavailable',
+  },
 };

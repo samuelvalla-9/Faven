@@ -6,8 +6,51 @@
 const OTP_REQUEST_WINDOW_MS = Number(process.env.OTP_REQUEST_WINDOW_MS || 60000);      // 1 minute
 const OTP_REQUEST_MAX_PER_PHONE = Number(process.env.OTP_REQUEST_MAX_PER_PHONE || 3); // 3 requests per phone per window
 const OTP_REQUEST_MAX_PER_IP = Number(process.env.OTP_REQUEST_MAX_PER_IP || 10);       // 10 requests per IP per window
+const OTP_REQUEST_MAX_PER_IP_PRIVATE = Number(process.env.OTP_REQUEST_MAX_PER_IP_PRIVATE || 100); // Higher limit for private IPs
 const OTP_VERIFY_MAX_ATTEMPTS = Number(process.env.OTP_VERIFY_MAX_ATTEMPTS || 5);      // 5 attempts per phone
 const OTP_EXPIRY_MS = Number(process.env.OTP_EXPIRY_MS || 300000);                     // 5 minutes
+
+// Whether to exempt private IPs from per-IP rate limiting (default: yes for demo/NAT scenarios)
+const RATE_LIMIT_EXEMPT_PRIVATE_IPS = process.env.RATE_LIMIT_EXEMPT_PRIVATE_IPS !== 'false';
+
+/**
+ * Check if an IP address is a private/LAN address (RFC 1918 + loopback + link-local).
+ * Private ranges: 10.x.x.x, 172.16-31.x.x, 192.168.x.x, 127.x.x.x, 169.254.x.x
+ *
+ * TRADEOFF: Exempting private IPs from per-IP rate limits allows multiple users behind
+ * NAT (e.g., venue Wi-Fi during demo) to log in without hitting shared bucket limits.
+ * The per-phone limit (3/min) remains the primary control against SMS pumping abuse.
+ * Public IPs are still rate-limited to prevent distributed attacks.
+ *
+ * @param {string} ip - IP address to check
+ * @returns {boolean} - true if private/LAN
+ */
+function isPrivateIp(ip) {
+  if (!ip || typeof ip !== 'string') return false;
+
+  // Handle IPv6-mapped IPv4 (e.g., ::ffff:192.168.1.1)
+  const normalizedIp = ip.replace(/^::ffff:/, '');
+
+  // IPv4 private ranges
+  const parts = normalizedIp.split('.').map(Number);
+  if (parts.length === 4 && parts.every(p => p >= 0 && p <= 255)) {
+    // 10.0.0.0/8
+    if (parts[0] === 10) return true;
+    // 172.16.0.0/12 (172.16.x.x - 172.31.x.x)
+    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
+    // 192.168.0.0/16
+    if (parts[0] === 192 && parts[1] === 168) return true;
+    // 127.0.0.0/8 (loopback)
+    if (parts[0] === 127) return true;
+    // 169.254.0.0/16 (link-local)
+    if (parts[0] === 169 && parts[1] === 254) return true;
+  }
+
+  // IPv6 loopback
+  if (normalizedIp === '::1') return true;
+
+  return false;
+}
 
 // In-memory stores
 // Structure: { [key]: { count: number, firstRequest: timestamp } }
@@ -40,7 +83,7 @@ cleanupInterval.unref();
 function canRequestOtp(phone, ip) {
   const now = Date.now();
 
-  // Check per-phone rate limit
+  // Check per-phone rate limit (always applies — primary SMS pumping defense)
   const phoneEntry = phoneRequests.get(phone);
   if (phoneEntry) {
     if (now - phoneEntry.firstRequest < OTP_REQUEST_WINDOW_MS) {
@@ -51,11 +94,15 @@ function canRequestOtp(phone, ip) {
     }
   }
 
-  // Check per-IP rate limit
+  // Check per-IP rate limit (uses higher threshold for private/LAN IPs)
   const ipEntry = ipRequests.get(ip);
   if (ipEntry) {
     if (now - ipEntry.firstRequest < OTP_REQUEST_WINDOW_MS) {
-      if (ipEntry.count >= OTP_REQUEST_MAX_PER_IP) {
+      // Private IPs get a higher limit to support NAT scenarios (e.g., demo venue Wi-Fi)
+      const maxPerIp = (RATE_LIMIT_EXEMPT_PRIVATE_IPS && isPrivateIp(ip))
+        ? OTP_REQUEST_MAX_PER_IP_PRIVATE
+        : OTP_REQUEST_MAX_PER_IP;
+      if (ipEntry.count >= maxPerIp) {
         const retryAfterMs = OTP_REQUEST_WINDOW_MS - (now - ipEntry.firstRequest);
         return { allowed: false, reason: 'too_many_requests_ip', retryAfterMs };
       }
@@ -147,11 +194,14 @@ module.exports = {
   canVerifyOtp,
   recordVerifyAttempt,
   clearVerifyAttempts,
+  isPrivateIp,
   _resetForTesting,
   // Export config for tests
   OTP_REQUEST_WINDOW_MS,
   OTP_REQUEST_MAX_PER_PHONE,
   OTP_REQUEST_MAX_PER_IP,
+  OTP_REQUEST_MAX_PER_IP_PRIVATE,
   OTP_VERIFY_MAX_ATTEMPTS,
   OTP_EXPIRY_MS,
+  RATE_LIMIT_EXEMPT_PRIVATE_IPS,
 };

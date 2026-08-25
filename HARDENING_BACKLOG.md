@@ -17,10 +17,10 @@
 
 ### Weighted confidence scoring
 **Risk:** Current tier logic counts signals (4-5 = full). UPI proof arguably stronger than AI pass; photo EXIF strongest. Equal weighting under-values high-trust signals.
-**Fix:** Replace signal counting with weighted confidence score (e.g., EXIF 40%, UPI 30%, AI 15%, receipt 10%, community 5%) and a threshold cutoff for tier classification.
+**Fix:** Replace signal counting with weighted confidence score (e.g., EXIF 40%, UPI 30%, AI 15%, receipt 10%, community 5%) and a threshold cutoff for tier classification. **Critical:** persist raw per-signal evidence (distance in metres, timestamp delta, GPS accuracy, AI-generation probability, OCR match confidence) rather than booleans, so historical posts can be re-scored when weights change.
 
 ### UTR verification via RBI Account Aggregator
-**Risk:** Current 12-digit format check is not a verification — attacker can invent UTRs. Once SMS pumping is live, fake UTRs paired with real EXIF bypasses credibility.
+**Risk:** Current 12-digit format check is not a verification — an attacker can invent a UTR. An invented UTR paired with a real geotagged photo yields two signals and a Partially Verified badge at zero cost.
 **Fix:** Integrate RBI Account Aggregator or bank statement OCR to confirm UTR belongs to the claiming user and matches the restaurant VPA.
 
 ---
@@ -99,9 +99,9 @@
 **Risk:** No explicit consent capture, no data-erasure flow, no defined retention policy. Non-compliant with India's Digital Personal Data Protection Act 2023.
 **Fix:** Add consent modal on first login; implement `DELETE /me` with cascading erasure; define and enforce retention periods.
 
-### CCPA endorsement disclosure
-**Risk:** Paid-to-post reviews may trigger FTC endorsement rules if US users participate. Currently no explicit disclosure beyond "Sponsored" toggle.
-**Fix:** Surface clear "This creator earned a reward for this review" disclosure; consult legal on geography gating.
+### CCPA (India) endorsement disclosure
+**Risk:** Faven pays every first-time poster ₹25 — this is a material connection arguably requiring disclosure on **every rewarded review**, not only sponsored ones. Applicable authority is India's **Central Consumer Protection Authority** endorsement guidelines (2023) plus **BIS IS 19000:2022** on online consumer review platforms. This applies now, domestically, regardless of US users.
+**Fix:** Surface clear "This creator earned a reward for this review" disclosure on all rewarded posts; consult legal on exact wording and placement; review IS 19000 requirements for review platform transparency.
 
 ### IT Act §79 intermediary status
 **Risk:** Hosting user-generated reviews without proper takedown process may forfeit safe-harbor.

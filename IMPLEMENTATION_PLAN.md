@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 25 August 2026 (T10: repo hygiene — sprint status sync, hardening tasks)
+> **Last updated:** 25 August 2026 (Session 2: F1–F5 follow-up pass; community corroboration, NAT-tolerant rate limits)
 
 ---
 
@@ -90,7 +90,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 - [x] **API integration tests** for verification logic — Jest, 31 tests across 2 suites: `api/tests/verification.test.js` (unit: tiers, haversine, EXIF evaluation, UPI/receipt/AI stubs) + `api/tests/exif.integration.test.js` (real geotagged JPEGs through exifr); `npm test`
 - [x] **Code coverage reporting** — `npm run test:coverage` → `api/coverage/` (lcov.info, cobertura-coverage.xml, HTML report); `verification.js` at ~94% stmts / 93% branches; `coverage/` gitignored
 
-**Notes:** browsers strip EXIF GPS, so `exif_verified` needs a real-device photo upload to trigger — logic is unit-tested against synthetic EXIF data. Community corroboration stays 0 (post-MVP).
+**Notes:** browsers strip EXIF GPS, so `exif_verified` needs a real-device photo upload to trigger — logic is unit-tested against synthetic EXIF data. Community corroboration signal implemented (Session 2) — passes when ≥1 other user has a location-verified review at the same restaurant within 7 days.
 
 **Demo goal achieved (20 Jul 2026):** generated a geotagged JPEG (`api/scripts/make-test-photo.js`, piexifjs) at CTR's coords, posted via API → `exif_verified=1`, tier `partial`. EXIF pipeline also covered by integration tests (`api/tests/exif.integration.test.js`, real files through exifr).
 
@@ -138,7 +138,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 
 ## Explicitly OUT of MVP scope (per product doc)
 
-Subscriptions (Pro ₹499 / Elite ₹1,499), brand campaign marketplace, semantic search, aesthetic visual AI, restaurant confirmation flows, community corroboration signal, B2B data licensing, voucher redemption.
+Subscriptions (Pro ₹499 / Elite ₹1,499), brand campaign marketplace, semantic search, aesthetic visual AI, restaurant confirmation flows, B2B data licensing, voucher redemption.
 
 ## Post-MVP roadmap (from product doc, for reference)
 
@@ -176,10 +176,11 @@ node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG 
 
 # Demo venue seeding (for on-device verification demo)
 # Inserts venue restaurants at given coords + one far restaurant for rejection demo
+# Also seeds corroborating reviews so community_verified signal fires
 node api/scripts/seed-demo-venue.js <lat> <lng> [city]
 # Example for Mumbai office demo:
 node api/scripts/seed-demo-venue.js 19.0760 72.8777 Mumbai
-# Then: photo at venue → "Demo Venue - Main" = PASS
+# Then: photo at venue → "Demo Venue - Main" = FULL verification (4 signals: EXIF + UTR + AI + community)
 #       same photo → "Demo - Far Location" = FAIL with reason "Photo taken too far from restaurant location"
 
 # EAS Build (Android APK for device testing)

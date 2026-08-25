@@ -1,25 +1,54 @@
 {
   "expo": {
-    "name": "app",
-    "slug": "app",
+    "name": "Faven",
+    "slug": "faven",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.faven.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Faven needs camera access to take photos of your food experiences.",
+        "NSPhotoLibraryUsageDescription": "Faven needs access to your photos to upload food experience images.",
+        "NSLocationWhenInUseUsageDescription": "Faven uses your location to verify you were at the restaurant."
+      }
     },
     "android": {
+      "package": "com.faven.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Faven needs access to your photos to upload food experience images.",
+          "cameraPermission": "Faven needs camera access to take photos of your food experiences."
+        }
+      ]
+    ]
   }
 }

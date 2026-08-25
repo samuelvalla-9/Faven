@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 22 July 2026 (Fix SafeAreaView & bottom tab bar layout for Expo Go mobile / react-native-safe-area-context)
+> **Last updated:** 25 August 2026 (T1: EAS build config + device testing commands)
 
 ---
 
@@ -173,10 +173,26 @@ cd api; npm run test:coverage        # lcov + cobertura + HTML → api/coverage/
 node api/scripts/make-test-photo.js 13.0027 77.5701 test.jpg   # geotagged JPEG for manual EXIF e2e
 
 # Login flow (dev): any 10-digit phone → OTP 123456
+
+# EAS Build (Android APK for device testing)
+cd app
+eas login                            # authenticate with Expo account
+eas build --profile internal --platform android   # cloud build → APK download link
+
+# Device testing fallback (USB-connected Android + Expo Go)
+# 1. Start API on laptop (default port 4000)
+node api/src/server.js
+# 2. Connect Android via USB, enable USB debugging
+adb reverse tcp:4000 tcp:4000        # forward device localhost:4000 → laptop:4000
+# 3. Set API URL to localhost in app/.env or pass via EXPO_PUBLIC_API_URL
+#    EXPO_PUBLIC_API_URL=http://localhost:4000
+# 4. Start Metro and open Expo Go on device
+cd app; npx expo start               # scan QR with Expo Go
+# Note: LAN auto-detection (Metro hostUri) also works if on same Wi-Fi and firewall allows
 ```
 
 **Key files:**
 - API entry: `api/src/server.js` · routes: `api/src/routes/` (incl. `search.js`) · verification: `api/src/services/verification.js` · rewards/streaks: `api/src/services/rewards.js` · credibility: `api/src/services/credibility.js`
 - Tests: `api/tests/` (Jest; helper `tests/helpers/geotaggedJpeg.js` generates EXIF fixtures) · coverage config in `api/package.json`
 - Schema/seed: `api/src/db/schema.sql`, `seed.js` · env: `api/.env` (never commit)
-- App entry: `app/App.tsx` · theme: `app/src/theme.ts` · API client: `app/src/api.ts`
+- App entry: `app/App.tsx` · theme: `app/src/theme.ts` · API client: `app/src/api.ts` · EAS config: `app/eas.json`

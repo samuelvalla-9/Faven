@@ -126,6 +126,9 @@ async function verifyReceipt(receiptPath, _restaurant) {
 const AI_GEN_THRESHOLD = Number(process.env.HIVE_AI_GEN_THRESHOLD || 0.7);
 const HIVE_API_URL = process.env.HIVE_API_URL || 'https://api.thehive.ai/api/v2/task/sync';
 
+// Timeout for outbound verification calls (default 5 seconds for demo resilience)
+const VERIFICATION_TIMEOUT_MS = Number(process.env.VERIFICATION_TIMEOUT_MS || 5000);
+
 // Pure logic: interpret a Hive sync-task response.
 // Looks for the `ai_generated` class score in the first output's classes.
 function evaluateHiveResponse(json, threshold = AI_GEN_THRESHOLD) {
@@ -148,13 +151,26 @@ async function callHive(photoPath) {
   const form = new FormData();
   const buf = fs.readFileSync(photoPath);
   form.append('media', new Blob([buf]), path.basename(photoPath));
-  const res = await fetch(HIVE_API_URL, {
-    method: 'POST',
-    headers: { Authorization: `Token ${process.env.HIVE_API_KEY}` },
-    body: form,
-  });
-  if (!res.ok) throw new Error(`hive_http_${res.status}`);
-  return res.json();
+
+  // Use AbortController for timeout — demo must never hang on dead network
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), VERIFICATION_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(HIVE_API_URL, {
+      method: 'POST',
+      headers: { Authorization: `Token ${process.env.HIVE_API_KEY}` },
+      body: form,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`hive_http_${res.status}`);
+    return res.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') throw new Error('hive_timeout');
+    throw err;
+  }
 }
 
 async function verifyAiAuthenticity(photoPath) {
@@ -182,6 +198,7 @@ module.exports = {
   MAX_DISTANCE_METERS,
   MAX_PHOTO_AGE_HOURS,
   AI_GEN_THRESHOLD,
+  VERIFICATION_TIMEOUT_MS,
   // Human-readable reason strings for display in app/modal
   REASON_DISPLAY: {
     // EXIF reasons
@@ -206,5 +223,6 @@ module.exports = {
     unexpected_response: 'Authenticity check unavailable',
     dev_stub: 'Authenticity check (demo mode)',
     provider_error_fail_open: 'Authenticity provider unavailable',
+    hive_timeout: 'Authenticity check timed out',
   },
 };

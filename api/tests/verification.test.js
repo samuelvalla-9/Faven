@@ -7,6 +7,7 @@ const {
   verifyReceipt,
   verifyAiAuthenticity,
   verifyExif,
+  verifyCommunityCorroboration,
 } = require('../src/services/verification');
 
 describe('computeTier', () => {
@@ -176,5 +177,75 @@ describe('evaluateHiveResponse', () => {
     expect(evaluateHiveResponse({}).reasons).toContain('unexpected_response');
     expect(evaluateHiveResponse({ status: [{ response: { output: [{ classes: [] }] } }] }).reasons).toContain('unexpected_response');
     expect(evaluateHiveResponse(null).reasons).toContain('unexpected_response');
+  });
+});
+
+describe('verifyCommunityCorroboration', () => {
+  // Mock pool that returns controlled count values
+  const mockPool = (count) => ({
+    query: jest.fn().mockResolvedValue([[{ count }]]),
+  });
+
+  test('corroboration present (count > 0) → verified', async () => {
+    const r = await verifyCommunityCorroboration(mockPool(2), 100, 1);
+    expect(r.verified).toBe(true);
+    expect(r.corroboratingReviews).toBe(2);
+    expect(r.reasons).toContain('corroboration_found');
+  });
+
+  test('corroboration absent (count = 0) → not verified', async () => {
+    const r = await verifyCommunityCorroboration(mockPool(0), 100, 1);
+    expect(r.verified).toBe(false);
+    expect(r.corroboratingReviews).toBe(0);
+    expect(r.reasons).toContain('no_corroboration');
+  });
+
+  test('no pool → not verified', async () => {
+    const r = await verifyCommunityCorroboration(null, 100, 1);
+    expect(r.verified).toBe(false);
+    expect(r.reasons).toContain('invalid_params');
+  });
+
+  test('no restaurantId → not verified', async () => {
+    const r = await verifyCommunityCorroboration(mockPool(0), null, 1);
+    expect(r.verified).toBe(false);
+    expect(r.reasons).toContain('invalid_params');
+  });
+
+  test('query excludes posting user (userId in WHERE)', async () => {
+    const pool = mockPool(1);
+    await verifyCommunityCorroboration(pool, 100, 5);
+    // Verify the query was called with userId excluded
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('user_id != ?'),
+      expect.arrayContaining([100, 5])
+    );
+  });
+
+  test('query filters by status != removed', async () => {
+    const pool = mockPool(1);
+    await verifyCommunityCorroboration(pool, 100, 1);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining("status != 'removed'"),
+      expect.anything()
+    );
+  });
+
+  test('query filters by exif_verified = 1', async () => {
+    const pool = mockPool(1);
+    await verifyCommunityCorroboration(pool, 100, 1);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('exif_verified = 1'),
+      expect.anything()
+    );
+  });
+
+  test('query uses COMMUNITY_WINDOW_DAYS', async () => {
+    const pool = mockPool(1);
+    await verifyCommunityCorroboration(pool, 100, 1);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('DATE_SUB'),
+      expect.arrayContaining([7]) // default window
+    );
   });
 });

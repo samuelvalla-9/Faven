@@ -87,15 +87,23 @@ async function seedDemoVenue() {
     note: '~5km away - for rejection demo'
   };
 
-  // Insert venue restaurants
+  // Insert venue restaurants and collect their IDs for corroborating reviews
+  const venueRestaurantIds = [];
   for (const r of venueRestaurants) {
-    await pool.query(
+    const [result] = await pool.query(
       `INSERT INTO restaurants (name, address, city, lat, lng, cuisine, price_level)
        VALUES (?, ?, ?, ?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE lat=VALUES(lat), lng=VALUES(lng)`,
       [r.name, r.address, city, r.lat, r.lng, r.cuisine, r.price]
     );
-    console.log(`  ✅ ${r.name} (${r.note}) → ${r.lat.toFixed(6)}, ${r.lng.toFixed(6)}`);
+    // Get the restaurant ID (insertId if new, or query if updated)
+    let restaurantId = result.insertId;
+    if (!restaurantId) {
+      const [[existing]] = await pool.query(`SELECT id FROM restaurants WHERE name = ?`, [r.name]);
+      restaurantId = existing?.id;
+    }
+    venueRestaurantIds.push(restaurantId);
+    console.log(`  ✅ ${r.name} (${r.note}) → ${r.lat.toFixed(6)}, ${r.lng.toFixed(6)} [id=${restaurantId}]`);
   }
 
   // Insert far restaurant
@@ -107,12 +115,51 @@ async function seedDemoVenue() {
   );
   console.log(`  ❌ ${farRestaurant.name} (${farRestaurant.note}) → ${farRestaurant.lat.toFixed(6)}, ${farRestaurant.lng.toFixed(6)}`);
 
+  // ---- Add corroborating reviews for community verification signal ----
+  // Create or get a "demo corroborator" user, then insert a location-verified
+  // review at each venue restaurant. This makes the community_verified signal
+  // fire when the demo user posts their first review.
+  console.log('\n📝 Seeding corroborating reviews for community verification...');
+
+  const corroboratorPhone = '0000000000';
+  await pool.query(
+    `INSERT INTO users (phone, name, username, city)
+     VALUES (?, 'Demo Corroborator', 'demo_corroborator', ?)
+     ON DUPLICATE KEY UPDATE name=VALUES(name)`,
+    [corroboratorPhone, city]
+  );
+  const [[corroborator]] = await pool.query(`SELECT id FROM users WHERE phone = ?`, [corroboratorPhone]);
+
+  for (const restaurantId of venueRestaurantIds) {
+    if (!restaurantId) continue;
+    // Check if a corroborating review already exists
+    const [[existing]] = await pool.query(
+      `SELECT id FROM reviews WHERE user_id = ? AND restaurant_id = ?`,
+      [corroborator.id, restaurantId]
+    );
+    if (!existing) {
+      await pool.query(
+        `INSERT INTO reviews (user_id, restaurant_id, rating, body, exif_verified, verification_tier, visited_at)
+         VALUES (?, ?, 4, 'Great food! Verified from the venue.', 1, 'partial', NOW())`,
+        [corroborator.id, restaurantId]
+      );
+      console.log(`  📝 Added corroborating review at restaurant id=${restaurantId}`);
+    } else {
+      console.log(`  📝 Corroborating review already exists at restaurant id=${restaurantId}`);
+    }
+  }
+
   console.log(`
 🎯 Demo setup complete!
 
 Verification demo flow:
   1. Take a photo with device camera at the venue
-  2. Post to "Demo Venue - Main" → should PASS (within ${process.env.EXIF_MAX_DISTANCE_M || 200}m threshold)
+  2. Post to "Demo Venue - Main" → should get FULL verification (4 signals):
+     - EXIF location ✓ (within ${process.env.EXIF_MAX_DISTANCE_M || 200}m threshold)
+     - UTR format ✓ (provide any 12-digit number)
+     - AI check ✓ (dev stub passes)
+     - Community ✓ (corroborating review exists)
+     This triggers the ₹25 first-post cashback!
   3. Post same photo to "Demo - Far Location (5km away)" → should FAIL with reason "too_far"
      The rejection will show: "Photo taken too far from restaurant location"
 

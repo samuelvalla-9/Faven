@@ -5,7 +5,7 @@ const multer = require('multer');
 const piexif = require('piexifjs');
 const pool = require('../db/pool');
 const auth = require('../middleware/auth');
-const { computeTier, verifyExif, verifyUpi, verifyReceipt, verifyAiAuthenticity, REASON_DISPLAY } = require('../services/verification');
+const { computeTier, verifyExif, verifyUpi, verifyReceipt, verifyAiAuthenticity, verifyCommunityCorroboration, REASON_DISPLAY } = require('../services/verification');
 const { computeStreak, milestoneForPostCount, qualifiesForFirstPostCashback } = require('../services/rewards');
 const { recomputeCredibility } = require('../services/credibility');
 
@@ -95,20 +95,21 @@ router.post('/', auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'r
       photoUrl = `/uploads/public/${photoFile.filename}`;
     }
 
-    // Live verification signals (community corroboration is post-MVP → always 0)
+    // Live verification signals
     // Note: verification uses the ORIGINAL file path (with EXIF) for accurate checking
-    const [exifRes, upiRes, receiptRes, aiRes] = await Promise.all([
+    const [exifRes, upiRes, receiptRes, aiRes, communityRes] = await Promise.all([
       verifyExif(photoFile?.path, restaurant),
       verifyUpi(utr),
       verifyReceipt(receiptFile?.path, restaurant),
       verifyAiAuthenticity(photoFile?.path),
+      verifyCommunityCorroboration(pool, restaurant_id, req.user.id),
     ]);
     const signals = {
       exif_verified: exifRes.verified ? 1 : 0,
       upi_verified: upiRes.verified ? 1 : 0,
       receipt_verified: receiptRes.verified ? 1 : 0,
       ai_authentic: aiRes.verified ? 1 : 0,
-      community_verified: 0,
+      community_verified: communityRes.verified ? 1 : 0,
     };
     const tier = computeTier(signals);
 
@@ -122,6 +123,7 @@ router.post('/', auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'r
         upi: { ...upiRes, displayReasons: formatReasons(upiRes) },
         receipt: { ...receiptRes, displayReasons: formatReasons(receiptRes) },
         ai: { ...aiRes, displayReasons: formatReasons(aiRes) },
+        community: { ...communityRes, displayReasons: formatReasons(communityRes) },
       },
     };
 

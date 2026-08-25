@@ -118,6 +118,43 @@ async function verifyReceipt(receiptPath, _restaurant) {
   return { verified: false, reasons: ['ocr_not_implemented'] };
 }
 
+// ---- Community corroboration (Sprint 5 — F1 fix) ----
+// Signal passes when ≥1 other user has a non-removed, location-verified review
+// of the same restaurant within a configurable window (default 7 days).
+// Excludes the posting user's own reviews. This is the viral mechanic.
+
+const COMMUNITY_WINDOW_DAYS = Number(process.env.COMMUNITY_WINDOW_DAYS || 7);
+
+/**
+ * Check if another user has posted a location-verified review of the same
+ * restaurant recently. Requires database pool and IDs.
+ *
+ * @param {object} pool - mysql2/promise pool
+ * @param {number} restaurantId - target restaurant
+ * @param {number} userId - posting user (excluded from search)
+ * @returns {Promise<{verified: boolean, corroboratingReviews: number, reasons: string[]}>}
+ */
+async function verifyCommunityCorroboration(pool, restaurantId, userId) {
+  if (!pool || !restaurantId) {
+    return { verified: false, corroboratingReviews: 0, reasons: ['invalid_params'] };
+  }
+
+  const [[{ count }]] = await pool.query(
+    `SELECT COUNT(*) AS count FROM reviews
+     WHERE restaurant_id = ?
+       AND user_id != ?
+       AND status != 'removed'
+       AND exif_verified = 1
+       AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)`,
+    [restaurantId, userId || 0, COMMUNITY_WINDOW_DAYS]
+  );
+
+  if (count > 0) {
+    return { verified: true, corroboratingReviews: count, reasons: ['corroboration_found'] };
+  }
+  return { verified: false, corroboratingReviews: 0, reasons: ['no_corroboration'] };
+}
+
 // ---- AI photo authenticity (Sprint 4) ----
 // Provider: Hive AI-generated media detection (env-gated via HIVE_API_KEY).
 // Without a key, dev stub passes photos as authentic. Provider errors fall back
@@ -194,11 +231,13 @@ module.exports = {
   verifyUpi,
   verifyReceipt,
   verifyAiAuthenticity,
+  verifyCommunityCorroboration,
   evaluateHiveResponse,
   MAX_DISTANCE_METERS,
   MAX_PHOTO_AGE_HOURS,
   AI_GEN_THRESHOLD,
   VERIFICATION_TIMEOUT_MS,
+  COMMUNITY_WINDOW_DAYS,
   // Human-readable reason strings for display in app/modal
   REASON_DISPLAY: {
     // EXIF reasons
@@ -224,5 +263,9 @@ module.exports = {
     dev_stub: 'Authenticity check (demo mode)',
     provider_error_fail_open: 'Authenticity provider unavailable',
     hive_timeout: 'Authenticity check timed out',
+    // Community corroboration reasons
+    corroboration_found: 'Another user verified this restaurant recently',
+    no_corroboration: 'No recent verified reviews from other users',
+    invalid_params: 'Community check skipped (missing data)',
   },
 };

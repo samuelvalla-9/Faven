@@ -125,7 +125,7 @@ npm run test:coverage # HTML report in api/coverage/
 
 ## 📋 Roadmap
 
-See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) — Sprints 0–4 complete (foundation, core loop, verification, rewards & retention, trust & polish). Deferred: EAS device builds, push notifications, real payment/SMS providers.
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) — Sprints 0–4 complete (foundation, core loop, verification, rewards & retention, trust & polish). Deferred: EAS device builds, push notifications, real payment/SMS providers, voucher redemption.
 
 ## 📄 License
 

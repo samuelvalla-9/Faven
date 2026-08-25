@@ -4,7 +4,7 @@
 > "Instagram for food, but every post is tied to proof the creator was actually there."
 > **Source docs:** `Faven_Document.html` (product & strategy), `faven-landing_4.html` (marketing page).
 > **Mode:** Individual project, agile — thin vertical slices, every sprint ends in a demoable increment.
-> **Last updated:** 25 August 2026 (T1: EAS build config + device testing commands)
+> **Last updated:** 25 August 2026 (T10: repo hygiene — sprint status sync, hardening tasks)
 
 ---
 
@@ -96,7 +96,7 @@ Logic lives in `api/src/services/verification.js` (`computeTier`).
 
 ---
 
-## Sprint 3 — Rewards & Retention (1 week) ⬅ IN PROGRESS
+## Sprint 3 — Rewards & Retention (1 week) ✅ COMPLETE
 
 **Goal:** Gamification loop feels real. Demo: streaks tick daily, leaderboard reflects verified posts, push notification on reward.
 

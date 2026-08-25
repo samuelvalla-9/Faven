@@ -62,4 +62,12 @@ export const api = {
     request<{ entries: any[]; totals: { inr: number; coins: number } }>('/rewards'),
   submitReview: (form: FormData) =>
     request<{ review: any; rewards: any[]; verification?: { tier: string; signals: Record<string, number>; details: any } }>('/reviews', { method: 'POST', body: form }),
+  stats: () =>
+    request<{
+      summary: { totalReviews: number; verified: number; unverified: number; verificationRate: number; restaurantCount: number };
+      byTier: { full: number; partial: number; reviewed: number };
+      byCity: { city: string; count: number }[];
+      signalBreakdown: { exif: number; upi: number; receipt: number; ai: number; community: number };
+      locations: { lat: number; lng: number; tier: string }[];
+    }>('/stats'),
 };

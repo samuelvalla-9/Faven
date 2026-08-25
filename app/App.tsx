@@ -692,6 +692,7 @@ function ProfileScreen({
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [showRewards, setShowRewards] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   const save = async () => {
     setBusy(true);
@@ -728,6 +729,12 @@ function ProfileScreen({
         onPress={() => setShowRewards((v) => !v)}
       />
       {showRewards ? <RewardsHistory /> : null}
+      <Button
+        title={showStats ? 'Hide dataset stats' : '📊 The Dataset'}
+        variant="ghost"
+        onPress={() => setShowStats((v) => !v)}
+      />
+      {showStats ? <DatasetStats /> : null}
       <Button title="Log out" variant="ghost" onPress={onLogout} />
     </ScrollView>
   );
@@ -778,6 +785,133 @@ function RewardsHistory() {
           </View>
         ))
       )}
+    </View>
+  );
+}
+
+// Dataset visibility view — aggregate stats for the "this is the asset" pitch moment
+function DatasetStats() {
+  const [data, setData] = useState<{
+    summary: { totalReviews: number; verified: number; unverified: number; verificationRate: number; restaurantCount: number };
+    byTier: { full: number; partial: number; reviewed: number };
+    byCity: { city: string; count: number }[];
+    signalBreakdown: { exif: number; upi: number; receipt: number; ai: number; community: number };
+    locations: { lat: number; lng: number; tier: string }[];
+  } | null>(null);
+  const [error, setError] = useState('');
+
+  const load = useCallback(() => {
+    setError('');
+    api.stats().then(setData).catch((e: any) => setError(e.message || 'Network error'));
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (!data) return <ActivityIndicator color={colors.accent} />;
+
+  const { summary, byTier, byCity, locations } = data;
+
+  return (
+    <View style={{ gap: spacing.md }}>
+      {/* Hero stat */}
+      <View style={[s.card, { alignItems: 'center', paddingVertical: spacing.lg }]}>
+        <Text style={{ ...typeScale.display, color: colors.green }}>{summary.verificationRate}%</Text>
+        <Text style={{ ...typeScale.meta, color: colors.inkSoft }}>Verification Rate</Text>
+      </View>
+
+      {/* Key numbers */}
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <StatBox label="Total Reviews" value={summary.totalReviews} />
+        <StatBox label="Restaurants" value={summary.restaurantCount} />
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <StatBox label="Verified" value={summary.verified} />
+        <StatBox label="Unverified" value={summary.unverified} />
+      </View>
+
+      {/* Tier breakdown */}
+      <View style={s.card}>
+        <Text style={s.cardTitle}>Reviews by Tier</Text>
+        <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm }}>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <View style={[s.badge, { backgroundColor: tierColors.full }]}>
+              <Text style={[s.badgeText, { color: tierTextColors.full }]}>FULL</Text>
+            </View>
+            <Text style={{ ...typeScale.h2, color: colors.ink, marginTop: 4 }}>{byTier.full}</Text>
+          </View>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <View style={[s.badge, { backgroundColor: tierColors.partial }]}>
+              <Text style={[s.badgeText, { color: tierTextColors.partial }]}>PARTIAL</Text>
+            </View>
+            <Text style={{ ...typeScale.h2, color: colors.ink, marginTop: 4 }}>{byTier.partial}</Text>
+          </View>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <View style={[s.badge, { backgroundColor: tierColors.reviewed }]}>
+              <Text style={[s.badgeText, { color: tierTextColors.reviewed }]}>REVIEWED</Text>
+            </View>
+            <Text style={{ ...typeScale.h2, color: colors.ink, marginTop: 4 }}>{byTier.reviewed}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Top cities */}
+      {byCity.length > 0 && (
+        <View style={s.card}>
+          <Text style={s.cardTitle}>Top Cities</Text>
+          {byCity.slice(0, 5).map((c) => (
+            <View key={c.city} style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+              <Text style={{ ...typeScale.body, color: colors.ink }}>{c.city}</Text>
+              <Text style={{ ...typeScale.body, color: colors.inkSoft }}>{c.count} reviews</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Simple location scatter (no map SDK — just positioned dots on a container) */}
+      {locations.length > 0 && (
+        <View style={s.card}>
+          <Text style={s.cardTitle}>Review Locations</Text>
+          <View style={{ height: 160, backgroundColor: colors.paper2, borderRadius: radius.sm, marginTop: spacing.sm, overflow: 'hidden', position: 'relative' }}>
+            {locations.slice(0, 100).map((loc, i) => {
+              // Simple projection: normalize lat/lng to 0-100% within data bounds
+              const lats = locations.map((l) => l.lat);
+              const lngs = locations.map((l) => l.lng);
+              const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+              const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+              const latSpread = maxLat - minLat || 1;
+              const lngSpread = maxLng - minLng || 1;
+              const y = ((loc.lat - minLat) / latSpread) * 100;
+              const x = ((loc.lng - minLng) / lngSpread) * 100;
+              return (
+                <View
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    left: `${Math.max(5, Math.min(95, x))}%`,
+                    bottom: `${Math.max(5, Math.min(95, y))}%`,
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: tierColors[loc.tier] || colors.inkSoft,
+                    opacity: 0.8,
+                  }}
+                />
+              );
+            })}
+            <Text style={{ position: 'absolute', bottom: 4, right: 8, ...typeScale.meta, color: colors.inkSoft }}>
+              {locations.length} data points
+            </Text>
+          </View>
+        </View>
+      )}
+
+      <Text style={{ ...typeScale.meta, color: colors.inkSoft, textAlign: 'center' }}>
+        This is the asset. And it compounds.
+      </Text>
     </View>
   );
 }
